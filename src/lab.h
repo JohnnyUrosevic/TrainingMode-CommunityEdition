@@ -87,6 +87,7 @@ static float get_angle_out_of_deadzone(float angle, int lastSDIWasCardinal);
 static void distribute_chances(u16 *chances[], unsigned int chance_count);
 static void rebound_chances(u16 *chances[], unsigned int chance_count, int just_changed_option);
 static int is_tech_anim(int state);
+static int is_getup_anim(int state);
 static bool can_walljump(GOBJ* fighter);
 static int GetCurrentStateName(GOBJ *fighter, char *buf);
 static bool check_has_jump(GOBJ *g);
@@ -2072,8 +2073,14 @@ enum tech_lockout {
     TECHLOCKOUT_LATEST,
 };
 
+enum tech_osd {
+    TECHLOCKOUT_OFF,
+    TECHLOCKOUT_ON,
+};
+
 static char *LabOptions_TechTrap[] = {"Off", "Earliest Tech Input", "Latest Tech Input"};
 static char *LabOptions_TechLockout[] = {"Earliest Tech Input", "Latest Tech Input"};
+static char *LabOptions_TechOsd[] = {"Off", "On"};
 
 static int tech_frame_distinguishable[27] = {
      8, // Mario
@@ -2114,6 +2121,7 @@ enum tech_option
     OPTTECH_SOUND,
     OPTTECH_TRAP,
     OPTTECH_LOCKOUT,
+    OPTTECH_OSD,
 
     OPTTECH_TECHINPLACECHANCE,
     OPTTECH_TECHAWAYCHANCE,
@@ -2179,6 +2187,13 @@ static EventOption LabOptions_Tech[OPTTECH_COUNT] = {
         .option_name = "Tech Lockout",
         .desc = "Prevent the CPU from teching in succession.\nEarliest - as little lockout as possible\nLatest - as much lockout as possible.",
         .option_values = LabOptions_TechLockout,
+    },
+    {
+        .option_kind = OPTKIND_STRING,
+        .value_num = sizeof(LabOptions_TechOsd)/sizeof(*LabOptions_TechOsd),
+        .option_name = "Tech OSD",
+        .desc = "Enable Tech Chasing OSD",
+        .option_values = LabOptions_TechOsd,
     },
     {
         .option_kind = OPTKIND_INT,
