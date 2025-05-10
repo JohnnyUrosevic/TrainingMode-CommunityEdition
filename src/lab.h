@@ -2165,8 +2165,14 @@ enum tech_lockout {
     TECHLOCKOUT_LATEST,
 };
 
-static const char *LabOptions_TechTrap[] = {"Off", "Earliest Tech Input", "Latest Tech Input"};
-static const char *LabOptions_TechLockout[] = {"Earliest Tech Input", "Latest Tech Input"};
+enum tech_osd {
+    TECHLOCKOUT_OFF,
+    TECHLOCKOUT_ON,
+};
+
+static char *LabOptions_TechTrap[] = {"Off", "Earliest Tech Input", "Latest Tech Input"};
+static char *LabOptions_TechLockout[] = {"Earliest Tech Input", "Latest Tech Input"};
+static char *LabOptions_TechOsd[] = {"Off", "On"};
 
 static int tech_frame_distinguishable[27] = {
      8, // Mario
@@ -2207,6 +2213,7 @@ enum tech_option
     OPTTECH_SOUND,
     OPTTECH_TRAP,
     OPTTECH_LOCKOUT,
+    OPTTECH_OSD,
 
     OPTTECH_TECHINPLACECHANCE,
     OPTTECH_TECHAWAYCHANCE,
@@ -2276,7 +2283,14 @@ static EventOption LabOptions_Tech[OPTTECH_COUNT] = {
         .values = LabOptions_TechLockout,
     },
     {
-        .kind = OPTKIND_INT,
+        .option_kind = OPTKIND_STRING,
+        .value_num = sizeof(LabOptions_TechOsd)/sizeof(*LabOptions_TechOsd),
+        .option_name = "Tech OSD",
+        .desc = "Enable Tech Chasing OSD",
+        .option_values = LabOptions_TechOsd,
+    },
+    {
+        .option_kind = OPTKIND_INT,
         .value_num = 101,
         .val = 25,
         .name = "Tech in Place Chance",

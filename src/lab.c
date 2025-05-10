@@ -1485,6 +1485,7 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
         eventData->cpu_tech_lockout = lockout;
     }
 
+    bool cpu_hit = false;
     // check if damaged
     if (cpu_data->flags.hitstun == 1)
     {
@@ -1492,12 +1493,28 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
         // go to SDI state
         eventData->cpu_state = CPUSTATE_SDI;
         Fighter_ZeroCPUInputs(cpu_data);
+
+        cpu_hit = true;
     }
     // check if being held in a grab
     if (CPU_IsGrabbed(cpu, hmn) == 1)
     {
         eventData->cpu_state = CPUSTATE_GRABBED;
+        cpu_hit = true;
     }
+
+    bool exited_tech = is_tech_anim(last_state) && !is_tech_anim(cpu_state);
+    if (cpu_hit && exited_tech)
+    {
+        event_vars->Message_Display(15, hmn_data->ply, 0, "Tech chase\nFrame: %i", cpu_data->TM.state_prev_frames[0] - 19);
+    }
+
+    bool exited_getup = is_getup_anim(last_state) && !is_getup_anim(cpu_state);
+    if (cpu_hit && exited_getup)
+    {
+        event_vars->Message_Display(15, hmn_data->ply, 0, "Tech chase\nFrame: %i", cpu_data->TM.state_prev_frames[0]);
+    }
+
     // check if being thrown
     if (is_thrown == 1)
     {
@@ -6430,6 +6447,10 @@ EventMenu *Event_Menu = &LabMenu_Main;
 
 static int IsTechAnim(int state) {
     return state == ASID_PASSIVE || state == ASID_PASSIVESTANDF || state == ASID_PASSIVESTANDB;
+}
+
+static int is_getup_anim(int state) {
+    return state == ASID_DOWNSTANDU || state == ASID_DOWNATTACKU || state == ASID_DOWNFOWARDU || state == ASID_DOWNBACKU;
 }
 
 // Clean up percentages so the total is 100, evenly distributing the change.
