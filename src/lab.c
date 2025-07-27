@@ -690,36 +690,26 @@ static int GetCurrentStateName(GOBJ *fighter, char *buf) {
 
     if (symbol == NULL) return 0;
 
-    // remove mangling
-    int pos = 0;
-    int posStart;
-    int nameSize = 0;
-    for (; pos < 50; pos++)
-    {
-        // search for "N_"
-        if ((symbol[pos] == 'N') && (symbol[pos + 1] == '_'))
-        {
-            // posStart = beginning of state name
-            pos++;
-            posStart = pos + 1;
+    int start = 0;
+    int len = 0;
+    for (int i = 0; i < 50; i++) {
+        if (strncmp(symbol + i, "N_", 2) == 0) {
+            start = i + 2;
+            break;
+        }
+    }
+    for (int i = start + 1; i < 50; i++) {
+        if (symbol[i] == '_') {
+            len = i - start;
             break;
         }
     }
 
-    // search for "_"
-    for (pos = posStart+1; pos < 50; pos++)
-    {
-        if (symbol[pos] == '_')
-        {
-            nameSize = pos - posStart;
-            break;
-        }
-    }
+    if (start == 0 || len == 0) return 0;
+    memcpy(buf, symbol + start, len);
+    buf[len] = '\0';
 
-    memcpy(buf, &symbol[posStart], nameSize);
-    buf[nameSize] = 0;
-
-    return nameSize + 1;
+    return len + 1;
 }
 
 void InfoDisplay_Update(GOBJ *menu_gobj, EventOption menu[], GOBJ *fighter, GOBJ *below)
@@ -877,7 +867,7 @@ void InfoDisplay_Update(GOBJ *menu_gobj, EventOption menu[], GOBJ *fighter, GOBJ
                     // get hitstun
                     float hitstun = 0;
                     if (fighter_data->flags.hitstun == 1)
-                        hitstun = AS_FLOAT(fighter_data->state_var.state_var1);
+                        memcpy(&hitstun, &fighter_data->state_var.state_var1, sizeof(float));
 
                     Text_SetText(text, i, "Hitstun: %.0f", hitstun);
                     break;
@@ -1052,7 +1042,8 @@ static int InShieldStun(int state) {
 
 static int HitstunEnded(GOBJ *character) {
     FighterData *data = character->userdata;
-    float hitstun = *((float*)&data->state_var.state_var1);
+    float hitstun;
+    memcpy(&hitstun, &data->state_var.state_var1, sizeof(float));
     return hitstun == 0.0;
 }
 
@@ -1784,7 +1775,8 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
         if (eventData->cpu_sdinum < LabOptions_CPU[OPTCPU_SDINUM].val)
         {
             eventData->cpu_sdinum++;
-            float angle, magnitude;
+            float angle = 0.f;
+            float magnitude = 0.f;
 
             switch (LabOptions_CPU[OPTCPU_SDIDIR].val)
             {
@@ -2401,9 +2393,6 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
         eventData->cpu_countertimer = 0;
     }
 
-    // update isthrown
-    eventData->cpu_isthrown = is_thrown;
-
     // update cpu_hitshield
     if (eventData->cpu_hitshield == 0)
     {
@@ -2621,8 +2610,8 @@ void DIDraw_Update()
                 Vec3 kb = fighter_data->phys.kb_vel;
                 float kb_angle = atan2(kb.Y, kb.X);
                 // init ASDI vector
-                Vec3 asdi_orig;
                 Vec3 asdi = {0, 0, 0};
+                Vec3 asdi_orig = {0, 0, 0};
                 // get fighter constants
                 ftCommonData *ft_common = *stc_ftcommon;
 
@@ -2681,7 +2670,9 @@ void DIDraw_Update()
                 float y_vel = fighter_data->phys.self_vel.Y;
                 Vec3 pos = fighter_data->phys.pos;
                 float decay = ft_common->kb_frameDecay;
-                int hitstun_frames = AS_FLOAT(fighter_data->state_var.state_var1);
+                int hitstun_frames;
+                memcpy(&hitstun_frames, &fighter_data->state_var.state_var1,
+                        sizeof(float));
                 int vertices_num = 0;    // used to track how many vertices will be needed
                 int override_frames = 0; // used as an alternate countdown
                 DIDrawCalculate *DICollData = calloc(sizeof(DIDrawCalculate) * hitstun_frames);

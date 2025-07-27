@@ -126,7 +126,8 @@ static int InHitstunAnim(int state) {
 
 static int HitstunEnded(GOBJ *fighter) {
     FighterData *data = fighter->userdata;
-    float hitstun = *((float*)&data->state_var.state_var1);
+    float hitstun;
+    memcpy(&hitstun, &data->state_var.state_var1, sizeof(float));
     return hitstun == 0.0;
 }
 
@@ -286,7 +287,7 @@ static void Reset_CPU(GOBJ *cpu, int side_idx, int dmg, float kb_mag, float kb_a
     cpu_data->phys.kb_vel.Y = vel_y;
 
     float kb_frames = (float)(int)((*stc_ftcommon)->x154 * kb_mag);
-    *(float*)&cpu_data->state_var.state_var1 = kb_frames;
+    memcpy(&cpu_data->state_var.state_var1, &kb_frames, sizeof(float));
     cpu_data->flags.hitstun = 1;
     Fighter_EnableCollUpdate(cpu_data);
 
