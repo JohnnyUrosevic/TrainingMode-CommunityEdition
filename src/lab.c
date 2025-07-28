@@ -1669,44 +1669,13 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
             goto CPULOGIC_RECOVER;
         }
 
-        switch (LabOptions_CPU[OPTCPU_MASH].val)
-        {
-        case (CPUMASH_NONE):
-        {
+        int mash = LabOptions_CPU[OPTCPU_MASH].val;
+        if (mash == CPUMASH_NONE) {
             Fighter_ZeroCPUInputs(cpu_data);
-            break;
         }
-        case (CPUMASH_MED):
-        {
-            if (HSD_Randi(100) <= CPUMASHRNG_MED)
-            {
-                // remove last frame inputs
-                cpu_data->input.held = 0;
-                cpu_data->input.lstick.X = 0;
-                cpu_data->input.lstick.Y = 0;
-
-                // input
-                cpu_data->cpu.held = PAD_BUTTON_A;
-                cpu_data->cpu.lstickX = 127;
-            }
-            break;
-        }
-        case (CPUMASH_HIGH):
-        {
-            if (HSD_Randi(100) <= CPUMASHRNG_HIGH)
-            {
-                // remove last frame inputs
-                cpu_data->input.held = 0;
-                cpu_data->input.lstick.X = 0;
-                cpu_data->input.lstick.Y = 0;
-
-                // input
-                cpu_data->cpu.held = PAD_BUTTON_A;
-                cpu_data->cpu.lstickX = 127;
-            }
-            break;
-        }
-        case (CPUMASH_PERFECT):
+        else if ((mash == CPUMASH_MED && HSD_Randi(100) <= CPUMASHRNG_MED)
+                || (mash == CPUMASH_HIGH && HSD_Randi(100) <= CPUMASHRNG_HIGH)
+                || mash == CPUMASH_PERFECT)
         {
             // remove last frame inputs
             cpu_data->input.held = 0;
@@ -1716,8 +1685,6 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
             // input
             cpu_data->cpu.held = PAD_BUTTON_A;
             cpu_data->cpu.lstickX = 127;
-            break;
-        }
         }
 
         if (LabOptions_CPU[OPTCPU_GRABRELEASE].val == CPUGRABRELEASE_AIRBORN)
