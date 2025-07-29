@@ -47,23 +47,16 @@ static inline int abs(int x)
 
 static float ceil(float x)
 {
-    int integerPart = x; // Get the integer part of the number
-
-    if (x == (float)integerPart)
-    {
-        // No fractional part, return the number as is
+    if (x != x) return x;  // NaN
+    if (x >= 2147483647.0f || x <= -2147483648.0f) return x;  // Too large for int
+    
+    int trunc = (int)x;
+    
+    if (x == (float)trunc)
         return x;
-    }
-    else if (x > 0)
-    {
-        // Positive number with a fractional part, return the next integer
-        return integerPart + 1;
-    }
-    else
-    {
-        // Negative number with a fractional part, return the current integer
-        return integerPart;
-    }
+    if (x > 0)
+        return (float)(trunc + 1);
+    return (float)trunc;
 }
 
 static void PRIM_DRAW(PRIM *gx, float x, float y, float z, int color)
