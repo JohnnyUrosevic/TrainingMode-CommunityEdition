@@ -822,7 +822,7 @@ void Ledgedash_UpdateCamera(void)
 
             // get players inputs
             FighterData *fighter_data = fighter->userdata;
-            HSD_Pad *pad = PadGet(fighter_data->pad_index, PADGET_MASTER);
+            HSD_Pad *pad = PadGetMaster(fighter_data->pad_index);
             int held = pad->held;
             float stickX = pad->fsubstickX;
             float stickY = pad->fsubstickY;
@@ -1392,8 +1392,8 @@ int Update_CheckAdvance(void)
     int controller = hmn_data->pad_index;
 
     // get their pad
-    HSD_Pad *pad = PadGet(controller, PADGET_MASTER);
-    HSD_Pad *engine_pad = PadGet(controller, PADGET_ENGINE);
+    HSD_Pad *pad = PadGetMaster(controller);
+    HSD_Pad *engine_pad = PadGetEngine(controller);
 
     // get their advance input
     static int stc_advance_btns[] = {HSD_TRIGGER_L, HSD_TRIGGER_Z, HSD_BUTTON_X, HSD_BUTTON_Y, HSD_TRIGGER_R};

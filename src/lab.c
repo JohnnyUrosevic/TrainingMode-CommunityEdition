@@ -817,7 +817,7 @@ void InfoDisplay_Update(GOBJ *menu_gobj, EventOption menu[], GOBJ *fighter, GOBJ
                 }
                 case (INFDISP_SYSLSTICK):
                 {
-                    HSD_Pad *pad = PadGet(fighter_data->pad_index, PADGET_MASTER);
+                    HSD_Pad *pad = PadGetMaster(fighter_data->pad_index);
                     Text_SetText(text, i, "LStick Sys: (%+.4f , %+.4f)", pad->fstickX, pad->fstickY);
                     break;
                 }
@@ -828,7 +828,7 @@ void InfoDisplay_Update(GOBJ *menu_gobj, EventOption menu[], GOBJ *fighter, GOBJ
                 }
                 case (INFDISP_SYSCSTICK):
                 {
-                    HSD_Pad *pad = PadGet(fighter_data->pad_index, PADGET_MASTER);
+                    HSD_Pad *pad = PadGetMaster(fighter_data->pad_index);
                     Text_SetText(text, i, "CStick Sys: (%+.4f , %+.4f)", pad->fsubstickX, pad->fsubstickY);
                     break;
                 }
@@ -839,7 +839,7 @@ void InfoDisplay_Update(GOBJ *menu_gobj, EventOption menu[], GOBJ *fighter, GOBJ
                 }
                 case (INFDISP_SYSTRIGGER):
                 {
-                    HSD_Pad *pad = PadGet(fighter_data->pad_index, PADGET_MASTER);
+                    HSD_Pad *pad = PadGetMaster(fighter_data->pad_index);
                     Text_SetText(text, i, "Trigger Sys: (%+.3f , %+.3f)", pad->ftriggerLeft, pad->ftriggerRight);
                     break;
                 }
@@ -2386,7 +2386,7 @@ int Update_CheckPause()
 
     // get their pad
     int controller = Fighter_GetControllerPort(stc_hmn_controller);
-    HSD_Pad *pad = PadGet(controller, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(controller);
 
     // if event menu not showing, develop mode + pause input, toggle frame advance
     if ((Pause_CheckStatus(1) != 2) && (*stc_dblevel >= 3) && (pad->down & HSD_BUTTON_START))
@@ -2412,7 +2412,7 @@ int Update_CheckPause()
     {
         if (LabOptions_Record[OPTREC_STARTPAUSED].val && Record_GetCurrFrame() == 0)
         {
-            HSD_Pad *pad = PadGet(stc_hmn_controller, PADGET_MASTER);
+            HSD_Pad *pad = PadGetMaster(stc_hmn_controller);
             
             int input = false;
             int buttons = PAD_TRIGGER_Z | PAD_TRIGGER_L | PAD_TRIGGER_R
@@ -2448,8 +2448,8 @@ int Update_CheckAdvance()
     int controller = Fighter_GetControllerPort(0);
 
     // get their pad
-    HSD_Pad *pad = PadGet(controller, PADGET_MASTER);
-    HSD_Pad *engine_pad = PadGet(controller, PADGET_ENGINE);
+    HSD_Pad *pad = PadGetMaster(controller);
+    HSD_Pad *engine_pad = PadGetEngine(controller);
 
     // get their advance input
     static int stc_advance_btns[] = {HSD_TRIGGER_L, HSD_TRIGGER_Z, HSD_BUTTON_X, HSD_BUTTON_Y, HSD_TRIGGER_R};
@@ -2553,12 +2553,11 @@ void DIDraw_Update()
                 // for HMN players
                 if (Fighter_GetSlotType(fighter_data->ply) == 0)
                 {
-                    int input_kind;
+                    HSD_Pad *pad;
                     if (Pause_CheckStatus(0) == 1) // if frame advance enabled, use master inputs
-                        input_kind = PADGET_MASTER;
+                        pad = PadGetMaster(fighter_data->pad_index);
                     else
-                        input_kind = PADGET_ENGINE; // no frame advance, use engine inputs
-                    HSD_Pad *pad = PadGet(fighter_data->pad_index, input_kind);
+                        pad = PadGetEngine(fighter_data->pad_index);
                     lstickX = pad->fstickX;
                     lstickY = pad->fstickY;
                     cstickX = pad->fsubstickX;
@@ -2969,7 +2968,7 @@ void Update_Camera()
 
             // get players inputs
             FighterData *fighter_data = fighter->userdata;
-            HSD_Pad *pad = PadGet(fighter_data->pad_index, PADGET_MASTER);
+            HSD_Pad *pad = PadGetMaster(fighter_data->pad_index);
             int held = pad->held;
             float stickX = pad->fsubstickX;
             float stickY = pad->fsubstickY;
@@ -3144,7 +3143,7 @@ int CustomTDI_Update(GOBJ *gobj)
     MenuData *menu_data = event_vars->menu_gobj->userdata;
 
     // get pausing players inputs
-    HSD_Pad *pad = PadGet(menu_data->controller_index, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(menu_data->controller_index);
     int inputs = pad->down;
 
     // if press A, save stick
@@ -3338,7 +3337,7 @@ void Inputs_Think(GOBJ *gobj)
         // get port and controller data
         GOBJ *fighter = Fighter_GetGObj(i);
         FighterData *ft_data = fighter->userdata;
-        HSD_Pad *pad = PadGet(ft_data->pad_index, PADGET_ENGINE);
+        HSD_Pad *pad = PadGetEngine(ft_data->pad_index);
 
         float stickX, stickY, substickX, substickY, triggerR, triggerL;
         int held;
@@ -3829,7 +3828,7 @@ int Record_RearrangeButtons(RecInputs *inputs) {
 
 void Record_SetInputs(GOBJ *fighter, RecInputs *inputs, bool mirror) {
     FighterData *fighter_data = fighter->userdata;
-    HSD_Pad *pad = PadGet(fighter_data->pad_index, PADGET_ENGINE);
+    HSD_Pad *pad = PadGetEngine(fighter_data->pad_index);
 
     // read inputs
     pad->held = Record_RearrangeButtons(inputs);
@@ -3897,7 +3896,7 @@ void Record_Update(int ply, RecInputData *input_data, RecInputData *rerecord_inp
     }
 
     // Get HSD Pad
-    HSD_Pad *pad = PadGet(fighter_data->pad_index, PADGET_ENGINE);
+    HSD_Pad *pad = PadGetEngine(fighter_data->pad_index);
 
     // ensure we haven't taken over playback or set the cpu to counter
     bool cancelled = (ply == 0 && stc_playback_cancelled_hmn)
@@ -4615,7 +4614,7 @@ void Savestates_Update()
             // loop through all controller ports
             for (int port = 0; port < 4; port++)
             {
-                HSD_Pad *pad = PadGet(port, PADGET_MASTER);
+                HSD_Pad *pad = PadGetMaster(port);
                 if (pad == NULL) continue; // Skip if no controller in this port
 
                 // Save state (D-pad right)
@@ -4954,7 +4953,7 @@ int Export_SelCardThink(GOBJ *export_gobj)
     int req_blocks = (divide_roundup(stc_transfer_buf_size, 8192) + 1);
 
     // get pausing players inputs
-    HSD_Pad *pad = PadGet(stc_hmn_controller, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(stc_hmn_controller);
     int inputs = pad->down;
 
     // update memcard info
@@ -5225,7 +5224,7 @@ int Export_EnterNameThink(GOBJ *export_gobj)
     ExportData *export_data = export_gobj->userdata;
 
     // get pausing players inputs
-    HSD_Pad *pad = PadGet(stc_hmn_controller, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(stc_hmn_controller);
     int inputs = pad->rapidFire;
     int input_down = pad->down;
     u8 *cursor = export_data->key_cursor;
@@ -5485,7 +5484,7 @@ int Export_ConfirmThink(GOBJ *export_gobj)
     ExportData *export_data = export_gobj->userdata;
 
     // get pausing players inputs
-    HSD_Pad *pad = PadGet(stc_hmn_controller, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(stc_hmn_controller);
     int inputs = pad->down;
 
     // if unplugged exit
@@ -6133,7 +6132,7 @@ void Event_Think_LabState_Normal(GOBJ *event) {
     FighterData *hmn_data = hmn->userdata;
     GOBJ *cpu = Fighter_GetGObj(1);
     FighterData *cpu_data = cpu->userdata;
-    HSD_Pad *pad = PadGet(hmn_data->pad_index, PADGET_ENGINE);
+    HSD_Pad *pad = PadGetEngine(hmn_data->pad_index);
 
     static int move_timer = 0;
     const int MOVE_THRESHOLD = 10;
@@ -6262,7 +6261,7 @@ void Event_Think_LabState_Normal(GOBJ *event) {
 
     int cpu_control = false;
     
-    HSD_Pad *hmn_pad = PadGet(stc_hmn_controller, PADGET_MASTER);
+    HSD_Pad *hmn_pad = PadGetMaster(stc_hmn_controller);
     int sticks = fabs(hmn_pad->fstickX) >= STICK_DEADZONE
         || fabs(hmn_pad->fstickY) >= STICK_DEADZONE
         || fabs(hmn_pad->fsubstickX) >= STICK_DEADZONE
@@ -6441,7 +6440,7 @@ void Event_Think(GOBJ *event)
     FighterData *hmn_data = hmn->userdata;
     GOBJ *cpu = Fighter_GetGObj(1);
     FighterData *cpu_data = cpu->userdata;
-    HSD_Pad *pad = PadGet(hmn_data->pad_index, PADGET_ENGINE);
+    HSD_Pad *pad = PadGetEngine(hmn_data->pad_index);
     
     // We allow negative values to track how long we have not been in lockout for.
     // If the CPU is in hitlag, do not finish the lockout. This prevents insta techs
@@ -6587,7 +6586,7 @@ void Event_Think(GOBJ *event)
         Fighter_KillAllVelocity(cpu);
         cpu_data->phys.pos.Y += cpu_data->attr.gravity; // remove small initial gravity delta
 
-        HSD_Pad *pad = PadGet(stc_hmn_controller, PADGET_MASTER);
+        HSD_Pad *pad = PadGetMaster(stc_hmn_controller);
         cpu_data->phys.pos.X += pad->fstickX * 1.5;
         cpu_data->phys.pos.Y += pad->fstickY * 1.5;
     } else if (LabOptions_CPU[OPTCPU_CTRL_BY].val != CTRLBY_NONE) {

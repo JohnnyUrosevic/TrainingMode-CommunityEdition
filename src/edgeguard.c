@@ -451,7 +451,7 @@ void Event_Think(GOBJ *menu) {
         reset_timer = RESET_DELAY;
     }
     
-    HSD_Pad *pad = PadGet(hmn_data->pad_index, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(hmn_data->pad_index);
     if (pad->down & HSD_BUTTON_DPAD_LEFT)
         reset_timer = 0;
     

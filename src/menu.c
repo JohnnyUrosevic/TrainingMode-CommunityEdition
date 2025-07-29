@@ -74,7 +74,7 @@ void EventMenu_Update(GOBJ *gobj)
             {
                 int controller_index = Fighter_GetControllerPort(i);
 
-                HSD_Pad *pad = PadGet(controller_index, PADGET_MASTER);
+                HSD_Pad *pad = PadGetMaster(controller_index);
 
                 // in develop mode, use X+DPad up
                 if (*stc_dblevel >= 3)
@@ -95,7 +95,7 @@ void EventMenu_Update(GOBJ *gobj)
             }
         }
 
-        HSD_Pad *pad = PadGet(menuData->controller_index, PADGET_MASTER);
+        HSD_Pad *pad = PadGetMaster(menuData->controller_index);
 
         // change pause state
         if (pause_pressed != 0)
@@ -218,7 +218,7 @@ void EventMenu_MenuThink(GOBJ *gobj, EventMenu *currMenu) {
     // get player who paused
     u8 pauser = menuData->controller_index;
     // get their  inputs
-    HSD_Pad *pad = PadGet(pauser, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(pauser);
     int inputs_rapid = pad->rapidFire;
     int inputs_held = pad->held;
     int inputs = inputs_rapid;
@@ -504,7 +504,7 @@ void EventMenu_PopupThink(GOBJ *gobj, EventMenu *currMenu)
 
     // get player who paused
     u8 pauser = menuData->controller_index; // get their  inputs
-    HSD_Pad *pad = PadGet(pauser, PADGET_MASTER);
+    HSD_Pad *pad = PadGetMaster(pauser);
     int inputs_rapid = pad->rapidFire;
     int inputs_held = pad->held;
     int inputs = inputs_rapid;

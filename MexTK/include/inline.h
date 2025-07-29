@@ -67,20 +67,13 @@ static void PRIM_DRAW(PRIM *gx, float x, float y, float z, int color)
     *(volatile int   *)(gx->data) = color;
 }
 
-static HSD_Pad *PadGet(int playerIndex, int padType)
+static HSD_Pad *PadGetMaster(int player_index)
 {
-    HSD_Pads *pads = 0;
-
-    // get the correct pad
-    if (padType == PADGET_MASTER)
-        pads = (HSD_Pads *)0x804c1fac;
-    else if (padType == PADGET_ENGINE)
-        pads = (HSD_Pads *)0x804c21cc;
-
-    if (pads == 0)
-        return 0;
-
-    return (&pads->pad[playerIndex]);
+    return &stc_master_pads->pad[player_index];
+}
+static HSD_Pad *PadGetEngine(int player_index)
+{
+    return &stc_engine_pads->pad[player_index];
 }
 
 static float Math_Vec2Distance(Vec2 *a, Vec2 *b)
