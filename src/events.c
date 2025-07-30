@@ -829,6 +829,38 @@ void EventLoad(void)
     }
 };
 
+void UpdateDevCamera(void)
+{
+    MatchCamera *cam = stc_matchcam;
+
+    // Return if camera not in develop mode
+    if (cam->cam_kind != 8)
+        return;
+
+    int pad_index = Fighter_GetControllerPort(0);
+    HSD_Pad *pad = PadGetMaster(pad_index);
+    int held = pad->held;
+    float x = pad->fsubstickX;
+    float y = pad->fsubstickY;
+
+    if (fabs(x) < 0.2)
+        x = 0;
+    if (fabs(y) < 0.2)
+        y = 0;
+
+    if (x != 0 || y != 0)
+    {
+        COBJ *cobj = Match_GetCObj();
+
+        if (held & HSD_BUTTON_A)
+            DevCam_AdjustPan(cobj, x * -1, y * -1);
+        else if (held & HSD_BUTTON_Y)
+            DevCam_AdjustZoom(cobj, y);
+        else if (held & HSD_BUTTON_B)
+            DevCam_AdjustRotate(cobj, &cam->devcam_rot, &cam->devcam_pos, x, y);
+    }
+}
+
 void EventUpdate(void)
 {
     // get event info
@@ -839,6 +871,8 @@ void EventUpdate(void)
     evFunction *evFunction = &stc_event_vars.evFunction;
     if (evFunction->Event_Update)
         evFunction->Event_Update();
+
+    UpdateDevCamera();
 
     // This is the vanilla callback. This code handles the vanilla develop.
     // mode shortcuts. We could probably delete it if we want to.

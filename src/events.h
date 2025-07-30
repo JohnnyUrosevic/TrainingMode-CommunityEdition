@@ -177,6 +177,7 @@ JOBJ *BoneToID(FighterData *fighter_data, JOBJ *bone);
 GOBJ *IDToGOBJ(GOBJ *id_as_ptr);
 FighterData *IDToFtData(FighterData *id_as_ptr);
 JOBJ *IDToBone(FighterData *fighter_data, JOBJ *id_as_ptr);
+void UpdateDevCamera(void);
 void EventUpdate(void);
 void Event_IncTimer(GOBJ *gobj);
 void Test_Think(GOBJ *gobj);
