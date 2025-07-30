@@ -8714,7 +8714,7 @@ EscapeSheikThink:
 
     # ON FIRST FRAME
     bl CheckIfFirstFrame
-    cmpwi r3, 0x0c
+    cmpwi r3, 0
     beq EscapeSheikThink_Start
     # Init Positions
     mr r3, REG_P1GObj
