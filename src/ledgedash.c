@@ -805,56 +805,6 @@ void Event_Update(void)
     } else {
         HSD_SetSpeedEasy(1.0);
     }
-
-    Ledgedash_UpdateCamera();
-}
-
-void Ledgedash_UpdateCamera(void)
-{
-    // if camera is set to advanced
-    if (LdshOptions_Main[OPT_CAM].val == 3)
-    {
-
-        // Get player gobj
-        GOBJ *fighter = Fighter_GetGObj(0);
-        if (fighter != 0)
-        {
-
-            // get players inputs
-            FighterData *fighter_data = fighter->userdata;
-            HSD_Pad *pad = PadGetMaster(fighter_data->pad_index);
-            int held = pad->held;
-            float stickX = pad->fsubstickX;
-            float stickY = pad->fsubstickY;
-
-            if (fabs(stickX) < STICK_DEADZONE)
-                stickX = 0;
-            if (fabs(stickY) < STICK_DEADZONE)
-                stickY = 0;
-
-            if (stickX != 0 || stickY != 0)
-            {
-                COBJ *cobj = Match_GetCObj();
-
-                // adjust pan
-                if ((held & HSD_BUTTON_A) != 0)
-                {
-                    DevCam_AdjustPan(cobj, stickX * -1, stickY * -1);
-                }
-                // adjust zoom
-                else if ((held & HSD_BUTTON_Y) != 0)
-                {
-                    DevCam_AdjustZoom(cobj, stickY);
-                }
-                // adjust rotate
-                else if ((held & HSD_BUTTON_B) != 0)
-                {
-                    MatchCamera *matchCam = stc_matchcam;
-                    DevCam_AdjustRotate(cobj, &matchCam->devcam_rot, &matchCam->devcam_pos, stickX, stickY);
-                }
-            }
-        }
-    }
 }
 
 int Ledge_Find(int search_dir, float xpos_start, float *ledge_dir)

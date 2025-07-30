@@ -10,7 +10,6 @@ typedef struct LdshHitboxData LdshHitboxData;
 #define LDSH_HITBOXNUM 30 * 4
 #define LCLTEXT_SCALE 4.5
 #define LCLJOBJ_BAR 4
-#define STICK_DEADZONE 0.2
 
 struct LedgedashData
 {

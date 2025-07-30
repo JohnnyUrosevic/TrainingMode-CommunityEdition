@@ -2955,53 +2955,6 @@ void DIDraw_GX()
         }
     }
 }
-void Update_Camera()
-{
-    // if camera is set to advanced
-    if (LabOptions_General[OPTGEN_CAM].val == 3)
-    {
-
-        // Get player gobj
-        GOBJ *fighter = Fighter_GetGObj(0);
-        if (fighter != 0)
-        {
-
-            // get players inputs
-            FighterData *fighter_data = fighter->userdata;
-            HSD_Pad *pad = PadGetMaster(fighter_data->pad_index);
-            int held = pad->held;
-            float stickX = pad->fsubstickX;
-            float stickY = pad->fsubstickY;
-
-            if (fabs(stickX) < STICK_DEADZONE)
-                stickX = 0;
-            if (fabs(stickY) < STICK_DEADZONE)
-                stickY = 0;
-
-            if (stickX != 0 || stickY != 0)
-            {
-                COBJ *cobj = Match_GetCObj();
-
-                // adjust pan
-                if ((held & HSD_BUTTON_A) != 0)
-                {
-                    DevCam_AdjustPan(cobj, stickX * -1, stickY * -1);
-                }
-                // adjust zoom
-                else if ((held & HSD_BUTTON_Y) != 0)
-                {
-                    DevCam_AdjustZoom(cobj, stickY);
-                }
-                // adjust rotate
-                else if ((held & HSD_BUTTON_B) != 0)
-                {
-                    MatchCamera *matchCam = stc_matchcam;
-                    DevCam_AdjustRotate(cobj, &matchCam->devcam_rot, &matchCam->devcam_pos, stickX, stickY);
-                }
-            }
-        }
-    }
-}
 
 void CustomTDI_Apply(GOBJ *cpu, GOBJ *hmn, CustomTDI *di)
 {
@@ -6113,9 +6066,6 @@ void Event_Update()
     // update info display
     InfoDisplay_Update(infodisp_gobj_hmn, LabOptions_InfoDisplayHMN, Fighter_GetGObj(0), NULL);
     InfoDisplay_Update(infodisp_gobj_cpu, LabOptions_InfoDisplayCPU, Fighter_GetGObj(1), infodisp_gobj_hmn);
-
-    // update advanced cam
-    Update_Camera();
 
     // Check for savestates
     Savestates_Update();
