@@ -22,7 +22,6 @@ static char stc_save_name[32] = "TM Input Recording";
 static u8 stc_hmn_controller;             // making this static so importing recording doesnt overwrite
 static u8 stc_cpu_controller;             // making this static so importing recording doesnt overwrite
 static u8 stc_null_controller;            // making this static so importing recording doesnt overwrite
-static LabPersistentData persistent_data;
 
 // Aitch: not really a better way to do this that I can think of.
 // Feel free to change if you find a way to implement playback takeover without a global.
@@ -280,27 +279,22 @@ void Lab_ChangePlayerLockPercent(GOBJ *menu_gobj, int value)
 // CHARACTER RNG CHANGE CALLBACKS --------------------------------------------------------
 
 void Lab_ChangeCharacterRng_Turnip(GOBJ *menu_gobj, int value) {
-    LabPersistentData* persistent_data = event_vars->persistent_data;
-    persistent_data->peach_item_rng = value;
+    event_vars->rng->peach_item = value;
 }
 void Lab_ChangeCharacterRng_PeachFSmash(GOBJ *menu_gobj, int value) {
-    LabPersistentData* persistent_data = event_vars->persistent_data;
-    persistent_data->peach_fsmash_rng = value;
+    event_vars->rng->peach_fsmash = value;
 }
 
 void Lab_ChangeCharacterRng_Misfire(GOBJ *menu_gobj, int value) {
-    LabPersistentData* persistent_data = event_vars->persistent_data;
-    persistent_data->luigi_misfire_rng = value;
+    event_vars->rng->luigi_misfire = value;
 }
 
 void Lab_ChangeCharacterRng_Hammer(GOBJ *menu_gobj, int value) {
-    LabPersistentData* persistent_data = event_vars->persistent_data;
-    persistent_data->gnw_hammer_rng = value;
+    event_vars->rng->gnw_hammer = value;
 }
 
 void Lab_ChangeCharacterRng_NanaThrow(GOBJ *menu_gobj, int value) {
-    LabPersistentData* persistent_data = event_vars->persistent_data;
-    persistent_data->nana_throw_rng = value;
+    event_vars->rng->nana_throw = value;
 }
 
 // --------------------------------------------------------
@@ -585,6 +579,9 @@ void Lab_ChangeHUD(GOBJ *menu_gobj, int value)
 
 void Lab_Exit(GOBJ *menu)
 {
+    // reset rng
+    memset(event_vars->rng, 0, sizeof(*event_vars->rng));
+
     // end game
     stc_match->state = 3;
 
@@ -5943,7 +5940,6 @@ void Event_Init(GOBJ *gobj)
     // This needs to be done here in init, as dolphin will jit the function when it runs and overwriting won't do anything.
     *(u32*)(0x801d463c) = 0x806d3778;
 
-    event_vars->persistent_data = &persistent_data;
     event_vars->savestate_saved_while_mirrored = false;
     event_vars->loaded_mirrored = false;
 

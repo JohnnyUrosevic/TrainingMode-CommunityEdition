@@ -128,13 +128,22 @@ typedef struct evFunction
     EventMenu **menu_start;
 } evFunction;
 
+typedef struct RNGControl
+{
+    u8 peach_item;      // 0x0
+    u8 peach_fsmash;    // 0x1
+    u8 luigi_misfire;   // 0x2
+    u8 gnw_hammer;      // 0x3
+    u8 nana_throw;      // 0x4
+} RNGControl;
+
 typedef struct EventVars
 {
     EventDesc *event_desc;                                                                   // event information
     evMenu *menu_assets;                                                                     // menu assets
     GOBJ *event_gobj;                                                                        // event gobj
     GOBJ *menu_gobj;                                                                         // event menu gobj
-    void *persistent_data;                                                                   // persistent data to be accessed from both C and ASM
+    RNGControl *rng;                                                                         // rng struct pointer
     int game_timer;                                                                          // amount of game frames passed
     u8 hide_menu;                                                                            // enable this to hide the base menu. used for custom menus.
     int (*Savestate_Save_v1)(Savestate_v1 *savestate, int flags);                                  // function pointer to save state

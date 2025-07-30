@@ -586,12 +586,14 @@ EventPage *EventPages[] = {
 /// Static Variables ///
 ////////////////////////
 
+RNGControl rng;
+
 EventVars stc_event_vars = {
     .event_desc = 0,
     .menu_assets = 0,
     .event_gobj = 0,
     .menu_gobj = 0,
-    .persistent_data = 0,
+    .rng = &rng,
     .game_timer = 0,
     .hide_menu = 0,
     .Savestate_Save_v1 = Savestate_Save_v1,

@@ -228,13 +228,6 @@ typedef struct LabData
     u8 hmn_controller;
     u8 cpu_controller;
 } LabData;
-typedef struct LabPersistentData {
-    u8 peach_item_rng;      // 0x0
-    u8 peach_fsmash_rng;    // 0x1
-    u8 luigi_misfire_rng;   // 0x2
-    u8 gnw_hammer_rng;      // 0x3
-    u8 nana_throw_rng;      // 0x4
-} LabPersistentData;
 typedef struct InfoDisplayData
 {
     JOBJ *menuModel;
