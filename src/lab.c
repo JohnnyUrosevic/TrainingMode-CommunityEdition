@@ -1230,9 +1230,7 @@ int CPUAction_CheckASID(GOBJ *cpu, int asid_kind)
                 || cpu_state == ASID_FALL
                 || cpu_state == ASID_FALLAERIALF
                 || cpu_state == ASID_FALLAERIALB
-                || cpu_state == ASID_DAMAGEFALL
-                || cpu_state == ASID_DAMAGEFLYROLL
-                || cpu_state == ASID_DAMAGEFLYTOP;
+                || cpu_state == ASID_DAMAGEFALL;
         }
 
         case (ASID_ACTIONABLEGROUND):
