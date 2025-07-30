@@ -464,16 +464,14 @@ static CPUAction Lab_CPUActionJumpNeutral[] = {
         .state     = ASID_ACTIONABLEAIR,
         .input     = PAD_BUTTON_X,
         .isLast    = 1,
-        .stickDir  = STCKDIR_NONE,
         .custom_check = CheckHasJump,
     },
 
     // wiggle out if we can't jump
     {
-        .state     = ASID_ACTIONABLEAIR,
+        .state     = ASID_DAMAGEAIR,
         .stickX    = 127,
         .isLast    = 1,
-        .stickDir  = STCKDIR_NONE,
     },
 
     ActionEnd

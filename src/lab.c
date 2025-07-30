@@ -1014,16 +1014,9 @@ void InfoDisplay_Update(GOBJ *menu_gobj, EventOption menu[], GOBJ *fighter, GOBJ
         idData->text->hidden = 1;
     }
 }
-float Fighter_GetOpponentDir(FighterData *from, FighterData *to)
+int Fighter_GetOpponentDir(FighterData *from, FighterData *to)
 {
-    float dir = -1;
-    Vec3 *from_pos = &from->phys.pos;
-    Vec3 *to_pos = &to->phys.pos;
-
-    if (from_pos->X <= to_pos->X)
-        dir = 1;
-
-    return dir;
+    return (from->phys.pos.X <= to->phys.pos.X) ? 1 : -1;
 }
 
 static int IsHitlagVictim(GOBJ *character) {
@@ -1391,71 +1384,43 @@ int Lab_CPUPerformAction(GOBJ *cpu, int action_id, GOBJ *hmn)
         if (!CPUAction_CheckASID(cpu, action_input->state))
             continue;
 
-        if (action_input->custom_check != 0 && !action_input->custom_check(cpu))
+        if (action_input->custom_check && !action_input->custom_check(cpu))
             continue;
 
         // check if im on the right frame
         if (cpu_frame < action_input->frameLow)
             continue;
 
-        // perform this action
-        int held = action_input->input;
-        s8 lstickX = action_input->stickX;
-        s8 lstickY = action_input->stickY;
-        s8 cstickX = action_input->cstickX;
-        s8 cstickY = action_input->cstickY;
-
         // stick direction
-        switch (action_input->stickDir)
-        {
-        case (STCKDIR_NONE):
-        {
+        int dir = 1;
+        switch (action_input->stickDir) {
+        case STCKDIR_NONE:
             break;
-        }
-        case (STCKDIR_TOWARD):
-        {
-            s8 dir = Fighter_GetOpponentDir(cpu_data, hmn_data);
-            lstickX *= dir;
-            cstickX *= dir;
+        case STCKDIR_TOWARD:
+            dir = Fighter_GetOpponentDir(cpu_data, hmn_data);
             break;
-        }
-        case (STCKDIR_AWAY):
-        {
-            s8 dir = Fighter_GetOpponentDir(cpu_data, hmn_data) * -1;
-            lstickX *= dir;
-            cstickX *= dir;
+        case STCKDIR_AWAY:
+            dir = -Fighter_GetOpponentDir(cpu_data, hmn_data);
             break;
-        }
-        case (STCKDIR_FRONT):
-        {
-            s8 dir = cpu_data->facing_direction;
-            lstickX *= dir;
-            cstickX *= dir;
+        case STCKDIR_FRONT:
+            dir = cpu_data->facing_direction;
             break;
-        }
-        case (STCKDIR_BACK):
-        {
-            s8 dir = cpu_data->facing_direction;
-            lstickX *= (dir * -1);
-            cstickX *= (dir * -1);
+        case STCKDIR_BACK:
+            dir = -cpu_data->facing_direction;
             break;
-        }
-        case (STICKDIR_RDM):
-        {
-            // random direction
-            s8 dir = HSD_Randi(2) == 0 ? 1 : -1;
-            lstickX *= dir;
-            cstickX *= dir;
+        case STICKDIR_RDM:
+            dir = HSD_Randi(2) ? -1 : 1;
             break;
-        }
+        default:
+            assert("Invalid stick dir");
         }
 
         // perform this action
-        cpu_data->cpu.held = held;
-        cpu_data->cpu.lstickX = lstickX;
-        cpu_data->cpu.lstickY = lstickY;
-        cpu_data->cpu.cstickX = cstickX;
-        cpu_data->cpu.cstickY = cstickY;
+        cpu_data->cpu.held = action_input->input;
+        cpu_data->cpu.lstickX = dir * action_input->stickX;
+        cpu_data->cpu.lstickY = action_input->stickY;
+        cpu_data->cpu.cstickX = dir * action_input->cstickX;
+        cpu_data->cpu.cstickY = action_input->cstickY;
 
         // check if this was the last action
         if (action_input->isLast == 1)
