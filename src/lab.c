@@ -1544,10 +1544,10 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
     if ((cpu_state == ASID_DOWNBOUNDD) || (cpu_state == ASID_DOWNBOUNDU) || (cpu_state == ASID_DOWNWAITU) || (cpu_state == ASID_DOWNWAITD) || (cpu_state == ASID_PASSIVE) || (cpu_state == ASID_PASSIVESTANDB) || (cpu_state == ASID_PASSIVESTANDF))
         eventData->cpu_state = CPUSTATE_GETUP;
     // check for cliffgrab
-    if ((cpu_state == ASID_CLIFFWAIT))
+    if (cpu_state == ASID_CLIFFWAIT)
         eventData->cpu_state = CPUSTATE_RECOVER;
     // check if dead
-    if (cpu_data->flags.dead == 1)
+    if (cpu_data->flags.dead)
         goto CPUSTATE_ENTERSTART;
 
     // run CPU state logic
@@ -2054,179 +2054,115 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
 
         CPULOGIC_FORCE_TECH:
 
-        // perform tech behavior
-        int tech_kind = LabOptions_Tech[OPTTECH_TECH].val;
-        s8 dir;
-        s8 stickX = 0;
-        s8 sincePress = 0;
-        s8 since2Press = -1;
-        s8 sinceXSmash = -1;
-    TECH_SWITCH:
-        switch (tech_kind)
-        {
-        case (CPUTECH_RANDOM):
-        {
-            int roll = HSD_Randi(100);
-            int sum = LabOptions_Tech[OPTTECH_TECHINPLACECHANCE].val;
-            if (roll < sum)
-            {
-                tech_kind = 1;
-                goto TECH_SWITCH;
-                break;
-            }
-            sum += LabOptions_Tech[OPTTECH_TECHAWAYCHANCE].val;
-            if (roll < sum)
-            {
-                tech_kind = 2;
-                goto TECH_SWITCH;
-                break;
-            }
-            sum += LabOptions_Tech[OPTTECH_TECHTOWARDCHANCE].val;
-            if (roll < sum)
-            {
-                tech_kind = 3;
-                goto TECH_SWITCH;
-                break;
-            }
-            tech_kind = 4;
-            goto TECH_SWITCH;
-        }
-        case (CPUTECH_NEUTRAL):
-        {
-            break;
-        }
-        case (CPUTECH_AWAY):
-        {
-            dir = Fighter_GetOpponentDir(cpu_data, hmn_data);
-            stickX = 40 * (dir * -1);
-            break;
-        }
-        case (CPUTECH_TOWARDS):
-        {
-            dir = Fighter_GetOpponentDir(cpu_data, hmn_data);
-            stickX = 40 * (dir);
-            break;
-        }
-        case (CPUTECH_NONE):
-        {
-            sincePress = -1;
-            break;
-        }
-        }
+        // Nick: idk the purpose of these lines of code, but I'm keeping them
+        // since the original logic by UP had them.
+        cpu_data->input.since_rapid_lr = -1;
+        cpu_data->input.timer_lstick_smash_x = -1;
 
-        if (eventData->cpu_tech_lockout <= 0) {
-            // input tech
-            cpu_data->input.timer_LR = sincePress;
-            cpu_data->input.since_rapid_lr = since2Press;
-            cpu_data->cpu.lstickX = stickX;
-            cpu_data->input.timer_lstick_smash_x = sinceXSmash;
-        } else {
-            cpu_data->input.timer_LR = 255;
-            cpu_data->input.since_rapid_lr = 255;
+        // disallow techs if we're in lockout
+        if (eventData->cpu_tech_lockout > 0) {
+            cpu_data->input.timer_LR = -1;
             cpu_data->cpu.lstickX = 0;
-            cpu_data->input.timer_lstick_smash_x = 255;
+            break;
         }
 
+        // perform tech behavior
+        int tech = LabOptions_Tech[OPTTECH_TECH].val;
+        if (tech == CPUTECH_RANDOM) {
+            float roll = HSD_Randf() * 100.0f;
+            float tip_chance = LabOptions_Tech[OPTTECH_TECHINPLACECHANCE].val;
+            float away_chance = LabOptions_Tech[OPTTECH_TECHAWAYCHANCE].val;
+            float toward_chance = LabOptions_Tech[OPTTECH_TECHTOWARDCHANCE].val;
+
+            if (roll < tip_chance)
+                tech = CPUTECH_NEUTRAL;
+            else if (roll < tip_chance + away_chance)
+                tech = CPUTECH_AWAY;
+            else if (roll < tip_chance + away_chance + toward_chance)
+                tech = CPUTECH_TOWARDS;
+            else
+                tech = CPUTECH_NONE;
+        }
+
+        s8 stick_x = 0;
+        s8 since_press = 0;
+        switch (tech) {
+        case (CPUTECH_NEUTRAL):
+            break;
+        case (CPUTECH_AWAY):
+            stick_x = 40 * -Fighter_GetOpponentDir(cpu_data, hmn_data);
+            break;
+        case (CPUTECH_TOWARDS):
+            stick_x = 40 * Fighter_GetOpponentDir(cpu_data, hmn_data);
+            break;
+        case (CPUTECH_NONE):
+            since_press = -1;
+            break;
+        }
+
+        // input tech
+        cpu_data->input.timer_LR = since_press;
+        cpu_data->cpu.lstickX = stick_x;
         break;
     }
 
     case (CPUSTATE_GETUP):
     {
-
-        // if im in downwait, perform getup logic
-        if ((cpu_data->state_id == ASID_DOWNWAITD) || (cpu_data->state_id == ASID_DOWNWAITU))
+        // if cpu is not in a down state, enter COUNTER
+        if (cpu_data->state_id < ASID_DOWNBOUNDU || cpu_data->state_id > ASID_DOWNSPOTD)
         {
-            // check to wait in miss tech
-            if (eventData->cpu_miss_tech_wait_timer) {
-                eventData->cpu_miss_tech_wait_timer--;
-                break;
-            } else {
-                int wait_chance = LabOptions_Tech[OPTTECH_GETUPWAITCHANCE].val;
-                if (HSD_Randi(100) < wait_chance) {
-                    eventData->cpu_miss_tech_wait_timer = 15;
-                    break;
-                }
-            }
-
-            // perform getup behavior
-            int getup = LabOptions_Tech[OPTTECH_GETUP].val;
-            s8 dir;
-            int inputs = 0;
-            s8 stickX = 0;
-            s8 stickY = 0;
-
-        GETUP_SWITCH:
-            switch (getup)
-            {
-            case (CPUGETUP_RANDOM):
-            {
-                int roll = HSD_Randi(100);
-                int sum = LabOptions_Tech[OPTTECH_GETUPSTANDCHANCE].val;
-                if (roll < sum)
-                {
-                    getup = 1;
-                    goto GETUP_SWITCH;
-                    break;
-                }
-                sum += LabOptions_Tech[OPTTECH_GETUPAWAYCHANCE].val;
-                if (roll < sum)
-                {
-                    getup = 2;
-                    goto GETUP_SWITCH;
-                    break;
-                }
-                sum += LabOptions_Tech[OPTTECH_GETUPTOWARDCHANCE].val;
-                if (roll < sum)
-                {
-                    getup = 3;
-                    goto GETUP_SWITCH;
-                    break;
-                }
-                getup = 4;
-                goto GETUP_SWITCH;
-                break;
-            }
-            case (CPUGETUP_STAND):
-            {
-                stickY = 127;
-                break;
-            }
-            case (CPUGETUP_TOWARD):
-            {
-                dir = Fighter_GetOpponentDir(cpu_data, hmn_data);
-                stickX = 127 * (dir);
-                break;
-            }
-            case (CPUGETUP_AWAY):
-            {
-                dir = Fighter_GetOpponentDir(cpu_data, hmn_data);
-                stickX = 127 * (dir * -1);
-                break;
-            }
-            case (CPUGETUP_ATTACK):
-            {
-                inputs = PAD_BUTTON_A;
-                break;
-            }
-            }
-
-            // input getup option
-            cpu_data->cpu.held = inputs;
-            cpu_data->cpu.lstickX = stickX;
-            cpu_data->cpu.lstickY = stickY;
+            eventData->cpu_state = CPUSTATE_COUNTER;
+            goto CPULOGIC_COUNTER;
+            break;
         }
-
-        // if cpu is in any other down state, do nothing
-        else if ((cpu_data->state_id >= ASID_DOWNBOUNDU) && (cpu_data->state_id <= ASID_DOWNSPOTD))
+        // if cpu is in non-wait down state, do nothing
+        else if (cpu_data->state_id != ASID_DOWNWAITD && cpu_data->state_id != ASID_DOWNWAITU)
         {
             break;
         }
 
-        // if cpu is not in a down state, enter COUNTER
-        else
-        {
-            eventData->cpu_state = CPUSTATE_COUNTER;
-            goto CPULOGIC_COUNTER;
+        // check to wait in miss tech
+        if (eventData->cpu_miss_tech_wait_timer) {
+            eventData->cpu_miss_tech_wait_timer--;
+            break;
+        } else {
+            int wait_chance = LabOptions_Tech[OPTTECH_GETUPWAITCHANCE].val;
+            if (HSD_Randi(100) < wait_chance) {
+                eventData->cpu_miss_tech_wait_timer = 15;
+                break;
+            }
+        }
+
+        int getup = LabOptions_Tech[OPTTECH_GETUP].val;
+        if (getup == CPUGETUP_RANDOM) {
+            float roll = HSD_Randf() * 100.0f;
+            float stand_chance = LabOptions_Tech[OPTTECH_GETUPSTANDCHANCE].val;
+            float away_chance = LabOptions_Tech[OPTTECH_GETUPAWAYCHANCE].val;
+            float toward_chance = LabOptions_Tech[OPTTECH_GETUPTOWARDCHANCE].val;
+
+            if (roll < stand_chance)
+                getup = CPUGETUP_STAND;
+            else if (roll < stand_chance + away_chance)
+                getup = CPUGETUP_AWAY;
+            else if (roll < stand_chance + away_chance + toward_chance)
+                getup = CPUGETUP_TOWARD;
+            else
+                getup = CPUGETUP_ATTACK;
+        }
+
+        // Execute the getup action
+        switch (getup) {
+        case CPUGETUP_STAND:
+            cpu_data->cpu.lstickY = 127;
+            break;
+        case CPUGETUP_TOWARD:
+            cpu_data->cpu.lstickX = 127 * Fighter_GetOpponentDir(cpu_data, hmn_data);
+            break;
+        case CPUGETUP_AWAY:
+            cpu_data->cpu.lstickX = -127 * Fighter_GetOpponentDir(cpu_data, hmn_data);
+            break;
+        case CPUGETUP_ATTACK:
+            cpu_data->cpu.held = PAD_BUTTON_A;
             break;
         }
 
