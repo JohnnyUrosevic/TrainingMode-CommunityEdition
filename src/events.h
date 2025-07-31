@@ -19,6 +19,13 @@
     DevelopText_AddString(event_vars->db_console_text, __VA_ARGS__); \
     OSReport(__VA_ARGS__); \
 } while (0)
+#define TMLOG_ONCE(...) do { \
+    static int __logged_once = 0; \
+    if (!__logged_once) { \
+        __logged_once = 1; \
+        TMLOG(__VA_ARGS__); \
+    } \
+} while (0)
 #else
 #define TMLOG(...) (void)0
 #endif
