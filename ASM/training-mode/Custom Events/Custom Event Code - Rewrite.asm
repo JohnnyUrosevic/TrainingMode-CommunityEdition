@@ -305,15 +305,7 @@ EggsTargetCheck:
     .set BottomCameraBound, 23
 
 EggsThinkSpawn:
-    .if debug==1
-    li r24, 0                                           # Init loop count
-    .endif
-
 EggsThinkSpawnLoop:
-    .if debug==1
-    addi r24, r24, 1                                    # Inc Loop Count
-    .endif
-
     # Get OnScreen Boundaries
     # Left Camera
     branchl r12, StageInfo_CameraLimitLeft_Load
@@ -378,13 +370,6 @@ EggsThinkSpawnLoop:
     bl FindGroundUnderCoordinate
     cmpwi r3, 0x0
     beq EggsThinkSpawnLoop
-
-    .if debug==1
-    # OSReport Loop Count
-    load r3, 0x803ead3c
-    mr r4, r24
-    branchl r12, OSReport
-    .endif
 
 SpawnEgg:
     addi r3, sp, 0x80

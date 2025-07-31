@@ -1,6 +1,3 @@
-    # Debug Flag
-    .set debug, 0
-
     #######################
     ## Codeset Variables ##
     #######################
