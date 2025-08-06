@@ -71,10 +71,6 @@ RecInputs *Lab_GetAlteringInputs(void) {
 }
 
 void Lab_ChangeAlterInputsFrame(GOBJ *menu_gobj, int value) {
-    Lab_SetAlterInputsMenuOptions(menu_gobj);
-}
-
-int Lab_SetAlterInputsMenuOptions(GOBJ *menu_gobj) {
     RecInputData *rec = Lab_GetAlteringRecording();
     int frame = LabOptions_AlterInputs[OPTINPUT_FRAME].val;
     if (rec->num < frame)
@@ -93,7 +89,6 @@ int Lab_SetAlterInputsMenuOptions(GOBJ *menu_gobj) {
     LabOptions_AlterInputs[OPTINPUT_L].val        = inputs->btn_L;
     LabOptions_AlterInputs[OPTINPUT_R].val        = inputs->btn_R;
     LabOptions_AlterInputs[OPTINPUT_Z].val        = inputs->btn_Z;
-    return 1;
 }
 
 void Lab_ChangeInputs(GOBJ *menu_gobj, int value) {
@@ -146,7 +141,7 @@ void Lab_AddCustomOSD(GOBJ *menu_gobj) {
     LabOptions_CustomOSDs[row]= (EventOption) {
         .kind = OPTKIND_FUNC,
         .name = row_text,
-        .desc = "Remove this Custom OSD.",
+        .desc = {"Remove this Custom OSD."},
         .OnSelect = Lab_RemoveCustomOSD,
     };
 }
@@ -643,12 +638,6 @@ GOBJ *InfoDisplay_Init(int ply)
     //    LabOptions_InfoDisplay[OPT_SCALE].val = 1;
     //else // 480i on wii uses large (shitty composite!)
     //    LabOptions_InfoDisplay[OPT_SCALE].val = 2;
-
-    // background scale
-
-    Vec2 pos = {-26.5, 21.5};
-    menu->trans.X = pos.X;
-    menu->trans.Y = pos.Y;
 
     GXColor shield_color = (*stc_shieldcolors)[ply];
     shield_color.a = 255;
@@ -2896,33 +2885,24 @@ void Lab_SelectCustomTDI(GOBJ *menu_gobj)
 
     // load current stick joints
     JOBJ *stick_joint = JOBJ_LoadJoint(stc_lab_data->stick);
-    stick_joint->scale.X = 2;
-    stick_joint->scale.Y = 2;
-    stick_joint->scale.Z = 2;
-    stick_joint->trans.X = -6;
-    stick_joint->trans.Y = -6;
+    stick_joint->scale = (Vec3) {2, 2, 1};
+    stick_joint->trans = (Vec3) {-6, -6, 0};
     userdata->stick_curr[0] = stick_joint;
     JOBJ_AddChild(tdi_gobj->hsd_object, stick_joint);
     // current c stick
     stick_joint = JOBJ_LoadJoint(stc_lab_data->cstick);
-    stick_joint->scale.X = 2;
-    stick_joint->scale.Y = 2;
-    stick_joint->scale.Z = 2;
-    stick_joint->trans.X = 6;
-    stick_joint->trans.Y = -6;
+    stick_joint->scale = (Vec3) {2, 2, 1};
+    stick_joint->trans = (Vec3) {6, -6, 0};
     userdata->stick_curr[1] = stick_joint;
     JOBJ_AddChild(tdi_gobj->hsd_object, stick_joint);
 
     // create stick curr text
     Text *text_curr = Text_CreateText(2, menu_data->canvas_menu);
     userdata->text_curr = text_curr;
-    // enable align and kerning
-    text_curr->align = 0;
     text_curr->kerning = 1;
     // scale canvas
     text_curr->viewport_scale.X = MENU_CANVASSCALE;
     text_curr->viewport_scale.Y = MENU_CANVASSCALE;
-    text_curr->trans.Z = MENU_TEXTZ;
     // create hit num
     Text_AddSubtext(text_curr, -50, 185, " ");
     // create lstick coords
@@ -2941,9 +2921,6 @@ void Lab_SelectCustomTDI(GOBJ *menu_gobj)
     {
         // left stick
         JOBJ *prevstick_joint = JOBJ_LoadJoint(stc_lab_data->stick);
-        prevstick_joint->scale.X = 1;
-        prevstick_joint->scale.Y = 1;
-        prevstick_joint->scale.Z = 1;
         prevstick_joint->rot.X = 0.4;
         prevstick_joint->trans.X = -22 + (i * (55 / TDI_DISPNUM));
         prevstick_joint->trans.Y = 10;
@@ -2953,9 +2930,6 @@ void Lab_SelectCustomTDI(GOBJ *menu_gobj)
 
         // cstick
         prevstick_joint = JOBJ_LoadJoint(stc_lab_data->cstick);
-        prevstick_joint->scale.X = 1;
-        prevstick_joint->scale.Y = 1;
-        prevstick_joint->scale.Z = 1;
         prevstick_joint->rot.X = 0.4;
         prevstick_joint->trans.X = -18 + (i * (55 / TDI_DISPNUM));
         prevstick_joint->trans.Y = 8;
@@ -2972,18 +2946,9 @@ void Lab_SelectCustomTDI(GOBJ *menu_gobj)
     Text_AddSubtext(text_curr, -460, 285, "A = Save Input  X = Delete Input  B = Return");
     Text_AddSubtext(text_curr, -460, 320, "Z = Reversible");
 
-    // hide original menu
-    event_vars->hide_menu = 1;
-
     // set pointers to custom gobj
     menu_data->custom_gobj = tdi_gobj;
     menu_data->custom_gobj_destroy = CustomTDI_Destroy;
-
-    /*
-    // Change color
-    GXColor gx_color = TEXT_BGCOLOR;
-    popup_joint->dobj->mobj->mat->diffuse = gx_color;
-*/
 }
 int CustomTDI_Update(GOBJ *gobj)
 {
@@ -2996,7 +2961,7 @@ int CustomTDI_Update(GOBJ *gobj)
     int inputs = pad->down;
 
     // if press A, save stick
-    if ((inputs & HSD_BUTTON_A) != 0 && stc_tdi_val_num < TDI_HITNUM) {
+    if ((inputs & HSD_BUTTON_A) && stc_tdi_val_num < TDI_HITNUM) {
         GOBJ *hmn = Fighter_GetGObj(0);
         GOBJ *cpu = Fighter_GetGObj(1);
         FighterData *hmn_data = hmn->userdata;
@@ -3020,13 +2985,13 @@ int CustomTDI_Update(GOBJ *gobj)
     }
 
     // if press X, go back a hit
-    if ((inputs & HSD_BUTTON_X) != 0 && stc_tdi_val_num > 0) {
+    if ((inputs & HSD_BUTTON_X) && stc_tdi_val_num > 0) {
         stc_tdi_val_num--;
         SFX_PlayCommon(0);
     }
 
     // if press B, exit
-    if ((inputs & HSD_BUTTON_B) != 0)
+    if (inputs & HSD_BUTTON_B)
     {
         CustomTDI_Destroy(gobj);
         return 1;
@@ -3112,7 +3077,6 @@ void CustomTDI_Destroy(GOBJ *gobj)
     GObj_Destroy(gobj);
 
     // show menu
-    event_vars->hide_menu = 0;
     menu_data->custom_gobj = 0;
     menu_data->custom_gobj_think = 0;
     menu_data->custom_gobj_destroy = 0;
@@ -3709,9 +3673,9 @@ void Record_SetInputs(GOBJ *fighter, RecInputs *inputs, bool mirror) {
     // It would be nice to simply overwrite the raw inputs with recording inputs,
     // and let the game copy it over to the pads we wrote above and internal UCF pads,
     // but alas TM has too much cruft for this to be feasible.
-    int qidx = stc_hsd_padlibdata->qread - 1;
+    int qidx = stc_padlibdata->qread - 1;
     if (qidx < 0) qidx += 5;
-    HSD_PadData *pads = &stc_hsd_padlibdata->queue[qidx];
+    HSD_PadData *pads = &stc_padlibdata->queue[qidx];
     PADStatus *stat = &pads->stat[fighter_data->pad_index];
     stat->button = pad->held;
     stat->stickX = pad->stickX;
@@ -4361,14 +4325,12 @@ void Record_MemcardLoad(int slot, int file_no)
 
             // enter recording menu
             MenuData *menu_data = event_vars->menu_gobj->userdata;
-            EventMenu *curr_menu = menu_data->currMenu;
-            curr_menu->state = EMSTATE_OPENSUB;
+            EventMenu *curr_menu = menu_data->curr_menu;
             // update curr_menu
             EventMenu *next_menu = curr_menu->options[2].menu;
             next_menu->prev = curr_menu;
-            next_menu->state = EMSTATE_FOCUS;
             curr_menu = next_menu;
-            menu_data->currMenu = curr_menu;
+            menu_data->curr_menu = curr_menu;
 
             // save to personal savestate
             event_vars->Savestate_Save_v1(event_vars->savestate, 0);
@@ -4667,7 +4629,6 @@ void Export_Init(GOBJ *menu_gobj)
     // initialize memcard menu
     Export_SelCardInit(export_gobj);
 
-    event_vars->hide_menu = 1;                       // hide original menu
     menu_data->custom_gobj = export_gobj;            // set custom gobj
     menu_data->custom_gobj_think = Export_Think;     // set think function
     menu_data->custom_gobj_destroy = Export_Destroy; // set destroy function
@@ -4726,7 +4687,6 @@ void Export_Destroy(GOBJ *export_gobj)
     GObj_Destroy(export_gobj);
 
     // show menu
-    event_vars->hide_menu = 0;
     menu_data->custom_gobj = 0;
     menu_data->custom_gobj_think = 0;
     menu_data->custom_gobj_destroy = 0;
@@ -4743,39 +4703,31 @@ void Export_SelCardInit(GOBJ *export_gobj)
     // create text
     Text *text_misc = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_misc = text_misc;
-    // enable align and kerning
     text_misc->align = 1;
     text_misc->kerning = 1;
     // scale canvas
     text_misc->viewport_scale.X = MENU_CANVASSCALE;
     text_misc->viewport_scale.Y = MENU_CANVASSCALE;
-    text_misc->trans.Z = MENU_TEXTZ;
 
     // create title text
     Text *text_title = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_title = text_title;
-    // enable align and kerning
-    text_title->align = 0;
     text_title->kerning = 1;
     // scale canvas
     text_title->trans.X = -23;
     text_title->trans.Y = -18;
     text_title->viewport_scale.X = MENU_CANVASSCALE * 2;
     text_title->viewport_scale.Y = MENU_CANVASSCALE * 2;
-    text_title->trans.Z = MENU_TEXTZ;
 
     // create desc text
     Text *text_desc = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_desc = text_desc;
-    // enable align and kerning
-    text_desc->align = 0;
     text_desc->kerning = 1;
     // scale canvas
     text_desc->trans.X = -23;
     text_desc->trans.Y = 12;
     text_desc->viewport_scale.X = MENU_CANVASSCALE;
     text_desc->viewport_scale.Y = MENU_CANVASSCALE;
-    text_desc->trans.Z = MENU_TEXTZ;
 
     Text_AddSubtext(text_title, 0, 0, "Select a Memory Card"); // add title
     Text_AddSubtext(text_desc, 0, 0, "");                      // add description
@@ -4860,7 +4812,6 @@ int Export_SelCardThink(GOBJ *export_gobj)
         export_data->is_inserted[i] = is_inserted;
     }
 
-    // if left
     if ((inputs & HSD_BUTTON_LEFT) || (inputs & HSD_BUTTON_DPAD_LEFT))
     {
         if (export_data->slot > 0)
@@ -4870,7 +4821,6 @@ int Export_SelCardThink(GOBJ *export_gobj)
         }
     }
 
-    // if right
     if ((inputs & HSD_BUTTON_RIGHT) || (inputs & HSD_BUTTON_DPAD_RIGHT))
     {
         if (export_data->slot < 1)
@@ -4881,7 +4831,6 @@ int Export_SelCardThink(GOBJ *export_gobj)
     }
 
     int cursor = export_data->slot;
-    // if press A,
     if ((inputs & HSD_BUTTON_A) || (inputs & HSD_BUTTON_START))
     {
         // ensure it can be saved
@@ -4901,9 +4850,7 @@ int Export_SelCardThink(GOBJ *export_gobj)
         else
             SFX_PlayCommon(3);
     }
-
-    // if press B,
-    if ((inputs & HSD_BUTTON_B))
+    else if (inputs & HSD_BUTTON_B)
     {
         Export_Destroy(export_gobj);
 
@@ -4974,7 +4921,6 @@ void Export_EnterNameInit(GOBJ *export_gobj)
     // create keyboard text
     Text *text_keyboard = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_keyboard = text_keyboard;
-    // enable align and kerning
     text_keyboard->align = 1;
     text_keyboard->kerning = 1;
     // scale canvas
@@ -5003,8 +4949,6 @@ void Export_EnterNameInit(GOBJ *export_gobj)
     char *cpu_name = Fighter_GetName(header->metadata.cpu);
     Text *text_filedetails = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_filedetails = text_filedetails;
-    // enable align and kerning
-    text_filedetails->align = 0;
     text_filedetails->kerning = 1;
     // scale canvas
     text_filedetails->trans.X = EXP_FILEDETAILS_X;
@@ -5017,22 +4961,17 @@ void Export_EnterNameInit(GOBJ *export_gobj)
     // create title text
     Text *text_title = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_title = text_title;
-    // enable align and kerning
-    text_title->align = 0;
     text_title->kerning = 1;
     // scale canvas
     text_title->trans.X = -23;
     text_title->trans.Y = -18;
     text_title->viewport_scale.X = MENU_CANVASSCALE * 2;
     text_title->viewport_scale.Y = MENU_CANVASSCALE * 2;
-    text_title->trans.Z = MENU_TEXTZ;
     Text_AddSubtext(text_title, 0, 0, "Enter File Name");
 
     // create desc text
     Text *text_desc = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_desc = text_desc;
-    // enable align and kerning
-    text_desc->align = 0;
     text_desc->kerning = 1;
     // scale canvas
     text_desc->trans.X = -23;
@@ -5045,8 +4984,6 @@ void Export_EnterNameInit(GOBJ *export_gobj)
     // create filename
     Text *text_filename = Text_CreateText(2, menu_data->canvas_menu);
     export_data->text_filename = text_filename;
-    // enable align and kerning
-    text_filename->align = 0;
     text_filename->kerning = 1;
     text_filename->use_aspect = 1;
     GXColor filename_color = {225, 225, 225, 255};
@@ -5074,7 +5011,7 @@ int Export_EnterNameThink(GOBJ *export_gobj)
 
     // get pausing players inputs
     HSD_Pad *pad = PadGetMaster(stc_hmn_controller);
-    int inputs = pad->rapidFire;
+    int inputs = pad->repeat;
     int input_down = pad->down;
     u8 *cursor = export_data->key_cursor;
     int update_keyboard = 0;
@@ -5173,8 +5110,7 @@ int Export_EnterNameThink(GOBJ *export_gobj)
             SFX_PlayCommon(3);
         }
     }
-    // if B
-    else if ((inputs & HSD_BUTTON_B))
+    else if (inputs & HSD_BUTTON_B)
     {
 
         // check if can delete
@@ -5203,22 +5139,14 @@ int Export_EnterNameThink(GOBJ *export_gobj)
             return 0;
         }
     }
-    // if Y
-    if ((inputs & HSD_BUTTON_Y))
+    if (inputs & HSD_BUTTON_Y)
     {
-        // toggle capslock
-        if (export_data->caps_lock == 0)
-            export_data->caps_lock = 1;
-        else
-            export_data->caps_lock = 0;
-
-        // update keyboard
+        export_data->caps_lock ^= 1;
         update_keyboard = 1;
 
         SFX_PlayCommon(1);
     }
-    // if X
-    if ((inputs & HSD_BUTTON_X))
+    if (inputs & HSD_BUTTON_X)
     {
 
         // check if any remaining characters
@@ -5244,8 +5172,7 @@ int Export_EnterNameThink(GOBJ *export_gobj)
             TMLOG("max characters!\n");
         }
     }
-    // if START
-    if ((inputs & HSD_BUTTON_START))
+    if (inputs & HSD_BUTTON_START)
     {
         // at least 1 character
         if (export_data->filename_cursor > 0)
@@ -5309,15 +5236,11 @@ void Export_ConfirmInit(GOBJ *export_gobj)
     // create text
     Text *confirm_text = Text_CreateText(2, menu_data->canvas_popup);
     export_data->confirm_text = confirm_text;
-    // enable align and kerning
     confirm_text->align = 1;
     confirm_text->kerning = 1;
     // scale canvas
-    confirm_text->trans.X = 0;
-    confirm_text->trans.Y = 0;
     confirm_text->viewport_scale.X = MENU_CANVASSCALE;
     confirm_text->viewport_scale.Y = MENU_CANVASSCALE;
-    confirm_text->trans.Z = MENU_TEXTZ;
     Text_AddSubtext(confirm_text, 0, -40, "Save File to Slot %s?", slots_names[export_data->slot]);
     int yes_subtext = Text_AddSubtext(confirm_text, -60, 20, "Yes");
     GXColor yellow = {201, 178, 0, 255};
@@ -5354,7 +5277,6 @@ int Export_ConfirmThink(GOBJ *export_gobj)
 
         int update_cursor = 0;
 
-        // if left
         if ((inputs & HSD_BUTTON_LEFT) || (inputs & HSD_BUTTON_DPAD_LEFT))
         {
             if (export_data->confirm_cursor > 0)
@@ -5363,7 +5285,6 @@ int Export_ConfirmThink(GOBJ *export_gobj)
                 update_cursor = 1;
             }
         }
-        // if right
         else if ((inputs & HSD_BUTTON_RIGHT) || (inputs & HSD_BUTTON_DPAD_RIGHT))
         {
             if (export_data->confirm_cursor < 1)
@@ -5372,9 +5293,7 @@ int Export_ConfirmThink(GOBJ *export_gobj)
                 update_cursor = 1;
             }
         }
-
-        // if b
-        else if ((inputs & HSD_BUTTON_B))
+        else if (inputs & HSD_BUTTON_B)
         {
             Export_ConfirmExit(export_gobj);
 
@@ -5383,7 +5302,6 @@ int Export_ConfirmThink(GOBJ *export_gobj)
 
             return 0;
         }
-        // if a
         else if ((inputs & HSD_BUTTON_A) || (inputs & HSD_BUTTON_START))
         {
 
@@ -5399,15 +5317,11 @@ int Export_ConfirmThink(GOBJ *export_gobj)
                 // create text
                 Text *confirm_text = Text_CreateText(2, menu_data->canvas_popup);
                 export_data->confirm_text = confirm_text;
-                // enable align and kerning
                 confirm_text->align = 1;
                 confirm_text->kerning = 1;
                 // scale canvas
-                confirm_text->trans.X = 0;
-                confirm_text->trans.Y = 0;
                 confirm_text->viewport_scale.X = MENU_CANVASSCALE;
                 confirm_text->viewport_scale.Y = MENU_CANVASSCALE;
-                confirm_text->trans.Z = MENU_TEXTZ;
                 Text_AddSubtext(confirm_text, 0, -20, "");
 
                 export_data->confirm_state = EXPOP_SAVE;
