@@ -39,7 +39,6 @@ EventDesc Lab = {
     .eventCSSFile = "TM/labCSS.dat",
     .CSSType = SLCHRKIND_TRAINING,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -73,7 +72,6 @@ EventDesc LCancel = {
     .jumpTableIndex = -1,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -106,7 +104,6 @@ EventDesc Ledgedash = {
     .jumpTableIndex = -1,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -139,7 +136,6 @@ EventDesc Wavedash = {
     .jumpTableIndex = -1,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -149,16 +145,45 @@ EventDesc Wavedash = {
     .matchData = &Wavedash_MatchData,
 };
 
+// Float Cancel Training
+static EventMatchData FloatCancel_MatchData = {
+    .timer = MATCH_TIMER_HIDE,
+    .matchType = MATCH_MATCHTYPE_TIME,
+    .hideGo = true,
+    .hideReady = true,
+    .isCreateHUD = false,
+    .timerRunOnPause = false,
+    .isCheckForZRetry = false,
+    .isShowScore = false,
+    .isRunStockLogic = false,
+    .isDisableHit = false,
+    .useKOCounter = false,
+    .timerSeconds = 0,
+};
+EventDesc FloatCancel = {
+    .eventName = "Float Cancel Training\n",
+    .eventDescription = "Practice Peach's most important\ntechnique!\n",
+    .eventFile = "fc",
+    .jumpTableIndex = -1,
+    .CSSType = SLCHRKIND_EVENT,
+    .allowed_characters = { .hmn = CSSID_PEACH, .cpu = -1 },
+    .cpuKind = -1,
+    .stage = GRKINDEXT_FD,
+    .disable_hazards = true,
+    .force_sopo = false,
+    .scoreType = SCORETYPE_KO,
+    .callbackPriority = 3,
+    .matchData = &FloatCancel_MatchData,
+};
+
 // Combo Training
 EventDesc Combo = {
-
     .eventName = "Combo Training\n",
     .eventDescription = "L+DPad adjusts percent | DPadDown moves CPU\nDPad right/left saves and loads positions.",
     .eventFile = 0,
     .jumpTableIndex = JUMP_COMBO,
     .CSSType = SLCHRKIND_TRAINING,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -176,7 +201,6 @@ EventDesc AttackOnShield = {
     .jumpTableIndex = JUMP_ATTACKONSHIELD,
     .CSSType = SLCHRKIND_TRAINING,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -193,7 +217,6 @@ EventDesc Reversal = {
     .jumpTableIndex = JUMP_REVERSAL,
     .CSSType = SLCHRKIND_TRAINING,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -210,7 +233,6 @@ EventDesc SDI = {
     .jumpTableIndex = JUMP_SDITRAINING,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = CKIND_FOX,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -218,7 +240,6 @@ EventDesc SDI = {
     .scoreType = SCORETYPE_KO,
     .callbackPriority = 3,
     .matchData = 0,
-
 };
 
 static EventMatchData Powershield_MatchData = {
@@ -230,7 +251,6 @@ static EventMatchData Powershield_MatchData = {
     .timerRunOnPause = false,
     .isCheckForZRetry = true,
     .isShowScore = false,
-
     .isRunStockLogic = false,
     .isDisableHit = false,
     .useKOCounter = false,
@@ -243,7 +263,6 @@ EventDesc Powershield = {
     .jumpTableIndex = -1,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = CKIND_FALCO,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -259,7 +278,6 @@ EventDesc Ledgetech = {
     .jumpTableIndex = JUMP_LEDGETECH,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = CKIND_FALCO,
     .stage = -1,
     .disable_hazards = true,
@@ -276,7 +294,6 @@ EventDesc AmsahTech = {
     .jumpTableIndex = JUMP_AMSAHTECH,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = CKIND_MARTH,
     .stage = -1,
     .disable_hazards = true,
@@ -293,7 +310,6 @@ EventDesc ShieldDrop = {
     .jumpTableIndex = JUMP_SHIELDDROP,
     .CSSType = SLCHRKIND_TRAINING,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -314,7 +330,6 @@ EventDesc WaveshineSDI = {
                     | CSSID_SAMUS | CSSID_ZELDA | CSSID_LINK,
         .cpu = -1,
     },
-    .playerKind = -1,
     .cpuKind = CKIND_FOX,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -331,7 +346,6 @@ EventDesc SlideOff = {
     .jumpTableIndex = JUMP_SLIDEOFF,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = CKIND_MARTH,
     .stage = GRKINDEXT_PSTAD,
     .disable_hazards = true,
@@ -348,7 +362,6 @@ EventDesc GrabMash = {
     .jumpTableIndex = JUMP_GRABMASH,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = CKIND_MARTH,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -367,7 +380,6 @@ EventDesc TechCounter = {
         .hmn = CSSID_FALCO | CSSID_FOX,
         .cpu = -1,
     },
-    .playerKind = -1,
     .cpuKind = CKIND_MARTH,
     .stage = -1,
     .disable_hazards = true,
@@ -386,7 +398,6 @@ static EventMatchData Edgeguard_MatchData = {
     .timerRunOnPause = false,
     .isCheckForZRetry = true,
     .isShowScore = false,
-
     .isRunStockLogic = false,
     .isDisableHit = false,
     .useKOCounter = false,
@@ -403,7 +414,6 @@ EventDesc Edgeguard = {
         .cpu = CSSID_FOX | CSSID_FALCO | CSSID_ZELDA | CSSID_CAPTAIN_FALCON
             | CSSID_MARTH
     },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -423,7 +433,6 @@ EventDesc SideBSweet = {
         .hmn = CSSID_FALCO | CSSID_FOX,
         .cpu = -1,
     },
-    .playerKind = -1,
     .cpuKind = CKIND_MARTH,
     .stage = -1,
     .disable_hazards = true,
@@ -442,7 +451,6 @@ EventDesc EscapeSheik = {
         .hmn = CSSID_YOSHI |  CSSID_CAPTAIN_FALCON |  CSSID_FALCO |  CSSID_FOX |  CSSID_PIKACHU,
         .cpu = -1,
     },
-    .playerKind = -1,
     .cpuKind = CKIND_SHEIK,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -459,7 +467,6 @@ EventDesc Eggs = {
     .jumpTableIndex = JUMP_EGGS,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = -1,
     .disable_hazards = true,
@@ -478,7 +485,6 @@ EventDesc Multishine = {
         .hmn = CSSID_FALCO | CSSID_FOX,
         .cpu = -1,
     },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -495,7 +501,6 @@ EventDesc Reaction = {
     .jumpTableIndex = JUMP_REACTION,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = CKIND_FOX,
     .stage = GRKINDEXT_FD,
     .disable_hazards = true,
@@ -512,7 +517,6 @@ EventDesc Ledgestall = {
     .jumpTableIndex = JUMP_LEDGESTALL,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
-    .playerKind = -1,
     .cpuKind = -1,
     .stage = GRKINDEXT_ZEBES,
     .disable_hazards = true,
@@ -564,22 +568,23 @@ static EventPage General_Page = {
 };
 
 // Page 3 Events
-static EventDesc *Spacie_Events[] = {
+static EventDesc *CharacterSpecific_Events[] = {
     &TechCounter,
     &Edgeguard,
     &SideBSweet,
     &EscapeSheik,
+    &FloatCancel,
 };
-static EventPage Spacie_Page = {
+static EventPage CharacterSpecific_Page = {
     .name = "Character-specific Tech",
-    .eventNum = countof(Spacie_Events),
-    .events = Spacie_Events,
+    .eventNum = countof(CharacterSpecific_Events),
+    .events = CharacterSpecific_Events,
 };
 
 EventPage *EventPages[] = {
     &Minigames_Page,
     &General_Page,
-    &Spacie_Page,
+    &CharacterSpecific_Page,
 };
 
 ////////////////////////
@@ -600,7 +605,10 @@ EventVars stc_event_vars = {
     .Message_Display = Message_Display,
     .Tip_Display = Tip_Display,
     .Tip_Destroy = Tip_Destroy,
-    .savestate = 0,
+    .HUD_DrawRects = HUD_DrawRects,
+    .HUD_DrawText = HUD_DrawText,
+    .HUD_DrawActionLogBar = HUD_DrawActionLogBar,
+    .HUD_DrawActionLogKey = HUD_DrawActionLogKey,
 };
 
 static GOBJ *stc_msgmgr;
@@ -650,6 +658,159 @@ static GXColor stc_msg_colors[] = {
     {255, 162, 186, 255},
     {255, 240, 0, 255},
 };
+
+//////////////////
+/// Primitives ///
+//////////////////
+
+void HUD_DrawRects(Rect *rects, GXColor *colors, int count)
+{
+    HUDCamData *cam_data = stc_event_vars.hudcam_gobj->userdata;
+    if (cam_data->hide)
+        return;
+
+    COBJ *cur_cam = COBJ_GetCurrent();
+    CObj_SetCurrent(stc_event_vars.hudcam_gobj->hsd_object);
+    
+    // https://smashboards.com/threads/primitive-drawing-module.454232/
+    // params1: no culling, no point/line size, no zbuffer, triangles
+    // params2: blending, blend src = src.a, blend dst = 1-src.a, noop blend op
+    PRIM_DrawMode draw_mode = {
+        .shape = PRIM_SHAPE_TRIANGLES,
+    };
+    PRIM_BlendMode blend_mode = {
+        .blend_type = PRIM_BLEND_BLEND,
+        .blend_src = PRIM_SOURCE_SRC_ALPHA,
+        .blend_dst = PRIM_SOURCE_SRC_INV_ALPHA,
+        .blend_logic = PRIM_LOGIC_NOOP,
+    };
+    PRIM_NEW(count * 6, draw_mode, blend_mode);
+    
+    for (int i = 0; i < count; ++i) {
+        GXColor gx_color = colors[i];
+        u32 color = ((u32)gx_color.r << 24u)
+            | ((u32)gx_color.g << 16u)
+            | ((u32)gx_color.b << 8u)
+            | ((u32)gx_color.a << 0u);
+        
+        Rect *rect = &rects[i];
+        float x1 = rect->x;
+        float y1 = rect->y;
+        float x2 = x1 + rect->w;
+        float y2 = y1 + rect->h;
+        
+        PRIM_DRAW(x1, y1, 0.f, color);
+        PRIM_DRAW(x1, y2, 0.f, color);
+        PRIM_DRAW(x2, y1, 0.f, color);
+        
+        PRIM_DRAW(x1, y2, 0.f, color);
+        PRIM_DRAW(x2, y1, 0.f, color);
+        PRIM_DRAW(x2, y2, 0.f, color);
+    }
+    
+    PRIM_CLOSE();
+    CObj_SetCurrent(cur_cam);
+}
+
+void HUD_DrawText(const char *text, Rect *pos, float size)
+{
+    HUDCamData *hud = stc_event_vars.hudcam_gobj->userdata;
+    
+    // skip if already used up entire text cache
+    if (hud->text_cache_used == countof(hud->text_cache))
+        return;
+
+    // create text if it doesn't exist
+    Text **text_ptr = &hud->text_cache[hud->text_cache_used++];
+    if (*text_ptr == 0) {
+        Text *new_text = Text_CreateText(2, hud->canvas);
+        *text_ptr = new_text;
+        new_text->kerning = 1;
+        new_text->align = 1;
+        new_text->use_aspect = 1;
+        new_text->aspect.X = 165;
+        new_text->viewport_scale.X = 0.1f;
+        new_text->viewport_scale.Y = 0.1f;
+        Text_AddSubtext(new_text, 0, 0, "");
+        Text_AddSubtext(new_text, 0, 0, "");
+        Text_AddSubtext(new_text, 0, 0, "");
+        Text_AddSubtext(new_text, 0, 0, "");
+        Text_AddSubtext(new_text, 0, 0, "");
+        
+        GXColor black = {0, 0, 0, 255};
+        for (int i = 0; i < 4; ++i)
+            Text_SetColor(new_text, i, &black);
+    }
+    
+    Text *hud_text = *text_ptr;
+    hud_text->hidden = false;
+    float x = pos->x * 10.f + pos->w * 5.f;
+    float y = pos->y * -10.f + pos->h * -5.f - 25.f;
+    for (int i = 0; i < 5; ++i) {
+        Text_SetText(hud_text, i, text);
+        Text_SetScale(hud_text, i, size, size);
+    }
+    float border_offset = 1.f;
+    Text_SetPosition(hud_text, 0, x-border_offset, y-border_offset);
+    Text_SetPosition(hud_text, 1, x+border_offset, y-border_offset);
+    Text_SetPosition(hud_text, 2, x-border_offset, y+border_offset);
+    Text_SetPosition(hud_text, 3, x+border_offset, y+border_offset);
+    Text_SetPosition(hud_text, 4, x, y);
+}
+
+static float log_size = 1.f;
+static float log_padding = 0.1f;
+static float log_y_pos = 15.f;
+static GXColor log_background_color = { 20, 20, 20, 255 };
+static float action_name_size = 4.5f;
+static float action_name_padding = 1.f;
+static float action_name_y_pos = 15.f;
+
+void HUD_DrawActionLogBar(u8 *action_log, GXColor *color_lookup, int log_count) {
+    Rect rects[log_count + 1];
+    GXColor colors[log_count + 1];
+    
+    float rect_count = (float)log_count;
+    float w = rect_count * log_size + (rect_count + 1.f) * log_padding;
+    
+    Rect background = { -w/2.f, log_y_pos, w, log_size + log_padding*2.f }; 
+    rects[0] = background;
+    colors[0] = log_background_color;
+    
+    RectShrink(&background, log_padding);
+    for (int i = 0; i < log_count; ++i) {
+        RectSplitL(&rects[i+1], &background, log_size, log_padding);
+        colors[i+1] = color_lookup[action_log[i]];
+    }
+    
+    HUD_DrawRects(rects, colors, log_count + 1);
+}
+    
+void HUD_DrawActionLogKey(char **action_names, GXColor *action_colors, int action_count) {
+    Rect rects[action_count*2];
+    GXColor colors[action_count*2];
+    
+    float w = action_count * action_name_size + (action_count + 1.f) * action_name_padding;
+    Rect action_table_row = { -w/2.f, action_name_y_pos, w, action_name_size + action_name_padding*2.f };
+    RectShrink(&action_table_row, action_name_padding);
+    
+    Rect cur_rect;
+    for (int i = 0; i < action_count; ++i) {
+        RectSplitL(&cur_rect, &action_table_row, action_name_size, action_name_padding);
+        HUD_DrawText(action_names[i], &cur_rect, 0.34f);
+        
+        colors[i*2+0] = log_background_color;
+        colors[i*2+1] = action_colors[i];
+        
+        cur_rect.y += 2.f;
+        RectShrink(&cur_rect, (action_name_size - log_size) / 2.f - log_padding);
+        rects[i*2+0] = cur_rect;
+        RectShrink(&cur_rect, log_padding);
+        rects[i*2+1] = cur_rect;
+    }
+    
+    HUD_DrawRects(rects, colors, action_count * 2);
+}
 
 ///////////////////////
 /// Event Functions ///
@@ -732,7 +893,7 @@ void EventInit(int page, int eventID, MatchInit *matchData)
             matchData->playerData[1].p_kind = PKIND_CPU;
             matchData->playerData[1].portNumberOverride = cpu_port;
         }
-
+        
         matchData->playerData[0].c_kind = preload->queued.fighters[0].kind;
         matchData->playerData[0].costume = preload->queued.fighters[0].costume;
         matchData->playerData[0].p_kind = PKIND_HMN;
@@ -821,11 +982,25 @@ void EventLoad(void)
     GOBJ *menu_gobj = EventMenu_Init(*evFunction->menu_start);
     stc_event_vars.menu_gobj = menu_gobj;
     
+    // init HUD camera
+    GOBJ *hudcam_gobj = GObj_Create(19, 20, 0);
+    stc_event_vars.hudcam_gobj = hudcam_gobj;
+    COBJDesc ***dmgScnMdls = Archive_GetPublicAddress(*stc_ifall_archive, (void *)0x803f94d0);
+    COBJDesc *cam_desc = dmgScnMdls[1][0];
+    COBJ *hud_cobj = COBJ_LoadDesc(cam_desc);
+    HUDCamData *cam_data = HSD_MemAlloc(sizeof(HUDCamData));
+    *cam_data = (HUDCamData) {
+        .hide = false,
+        .canvas = Text_CreateCanvas(2, hudcam_gobj, 14, 15, 0, GXLINK_HUD, 81, 19),
+    };
+    GObj_AddUserData(hudcam_gobj, 4, HSD_Free, cam_data);
+    GObj_AddObject(hudcam_gobj, R13_U8(-0x3E55), hud_cobj);
+    GOBJ_InitCamera(hudcam_gobj, HUD_CObjThink, 7);
+    hudcam_gobj->cobj_links = 1 << GXLINK_HUD;
+    
     // Run this event's init function
-    if (evFunction->Event_Init != 0)
-    {
+    if (evFunction->Event_Init)
         evFunction->Event_Init(gobj);
-    }
 };
 
 void UpdateDevCamera(void)
@@ -862,6 +1037,15 @@ void UpdateDevCamera(void)
 
 void EventUpdate(void)
 {
+    // reset text cache for this frame
+    HUDCamData *hudcam_data = stc_event_vars.hudcam_gobj->userdata;
+    hudcam_data->text_cache_used = 0;
+    for (u32 i = 0; i < countof(hudcam_data->text_cache); ++i) {
+        Text *t = hudcam_data->text_cache[i];
+        if (t)
+            t->hidden = true;
+    }
+    
     // get event info
     GOBJ *menu_gobj = stc_event_vars.menu_gobj;
     if (menu_gobj)
@@ -1174,14 +1358,13 @@ void Hazards_Disable(void)
 // Message Functions
 void Message_Init(void)
 {
-
     // create cobj
     GOBJ *cam_gobj = GObj_Create(19, 20, 0);
     COBJDesc *cam_desc = stc_event_vars.menu_assets->hud_cobjdesc;
     COBJ *cam_cobj = COBJ_LoadDescSetScissor(cam_desc);
     cam_cobj->scissor_bottom = 400;
     // init camera
-    GObj_AddObject(cam_gobj, R13_U8(-0x3E55), cam_cobj); //R13_U8(-0x3E55)
+    GObj_AddObject(cam_gobj, R13_U8(-0x3E55), cam_cobj);
     GOBJ_InitCamera(cam_gobj, Message_CObjThink, MSG_COBJLGXPRI);
     cam_gobj->cobj_links = MSG_COBJLGXLINKS;
 
@@ -1588,6 +1771,12 @@ void Message_Add(GOBJ *msg_gobj, int queue_num)
     msg_data->prev_index = -1;
     msg_data->orig_index = 0;
 }
+void HUD_CObjThink(GOBJ *gobj)
+{
+    HUDCamData *cam = gobj->userdata;
+    if (!cam->hide && Pause_CheckStatus(1) != 2)
+        CObjThink_Common(gobj);
+}
 void Message_CObjThink(GOBJ *gobj)
 {
     if (Pause_CheckStatus(1) != 2)
@@ -1868,11 +2057,6 @@ u8 GetIsSelectStage(int page, int event)
 {
     EventDesc *desc = GetEventDesc(page, event);
     return desc->stage == -1;
-}
-s8 GetFighter(int page, int event)
-{
-    EventDesc *desc = GetEventDesc(page, event);
-    return desc->playerKind;
 }
 s8 GetCPUFighter(int page, int event)
 {

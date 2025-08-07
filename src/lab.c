@@ -2407,7 +2407,7 @@ void DIDraw_Update()
         .left = {-3.3, 5.7},
         .right = {3.3, 5.7},
     };
-
+    
     // if enabled and pause menu isnt shown, update di draw
     if ((LabOptions_General[OPTGEN_DI].val == 1)) //  && (Pause_CheckStatus(1) != 2)
     {
@@ -2521,9 +2521,8 @@ void DIDraw_Update()
                 float y_vel = fighter_data->phys.self_vel.Y;
                 Vec3 pos = fighter_data->phys.pos;
                 float decay = ft_common->kb_frameDecay;
-                int hitstun_frames;
-                memcpy(&hitstun_frames, &fighter_data->state_var.state_var1,
-                        sizeof(float));
+                float hitstun_frames;
+                memcpy(&hitstun_frames, &fighter_data->state_var.state_var1, sizeof(float));
                 int vertices_num = 0;    // used to track how many vertices will be needed
                 int override_frames = 0; // used as an alternate countdown
                 DIDrawCalculate *DICollData = calloc(sizeof(DIDrawCalculate) * hitstun_frames);
@@ -2810,7 +2809,6 @@ void DIDraw_GX()
     // if toggle enabled
     if (LabOptions_General[OPTGEN_DI].val == 1)
     {
-
         // draw each
         for (int i = 0; i < 6; i++)
         {
@@ -2825,12 +2823,20 @@ void DIDraw_GX()
                     Vec2 *vertices = didraw->vertices[j];
 
                     // alloc prim
-                    PRIM *gx = PRIM_NEW(vertex_num, 0x001F1306, 0x00000C55);
+                    PRIM_DrawMode draw_mode = {
+                        .line_width = 31,
+                        .z_compare_enable = true,
+                        .z_logic_eq = true,
+                        .z_logic_lt = true,
+                        .shape = PRIM_SHAPE_LINE_STRIP,
+                    };
+                    PRIM_BlendMode blend_mode = { 0 };
+                    PRIM_NEW(vertex_num, draw_mode, blend_mode);
 
                     // draw each
                     for (int k = 0; k < vertex_num; k++)
                     {
-                        PRIM_DRAW(gx, vertices[k].X, vertices[k].Y, 0, 0x008affff);
+                        PRIM_DRAW(vertices[k].X, vertices[k].Y, 0, 0x008affff);
                     }
 
                     // close
@@ -3335,16 +3341,6 @@ GOBJ *Record_Init()
     // Add per frame process
     GObj_AddProc(rec_gobj, Record_Think, 3);
 
-    // create cobj
-    GOBJ *cam_gobj = GObj_Create(19, 20, 0);
-    COBJDesc ***dmgScnMdls = Archive_GetPublicAddress(*stc_ifall_archive, (void *)0x803f94d0);
-    COBJDesc *cam_desc = dmgScnMdls[1][0];
-    COBJ *rec_cobj = COBJ_LoadDesc(cam_desc);
-    // init camera
-    GObj_AddObject(cam_gobj, R13_U8(-0x3E55), rec_cobj);
-    GOBJ_InitCamera(cam_gobj, Record_CObjThink, RECCAM_GXPRI);
-    cam_gobj->cobj_links = RECCAM_COBJGXLINK;
-
     evMenu *menuAssets = event_vars->menu_assets;
     JOBJ *playback = JOBJ_LoadJoint(menuAssets->playback);
 
@@ -3436,14 +3432,6 @@ GOBJ *Record_Init()
     DevelopText_StoreTextScale(dev_text, 7.5, 10);
     */
     return rec_gobj;
-}
-void Record_CObjThink(GOBJ *gobj)
-{
-    // hide UI if set to off
-    if ((rec_state->is_exist == 1) && ((LabOptions_Record[OPTREC_CPUMODE].val != 0) || (LabOptions_Record[OPTREC_HMNMODE].val != 0)))
-    {
-        CObjThink_Common(gobj);
-    }
 }
 void Record_GX(GOBJ *gobj, int pass)
 {
@@ -5878,6 +5866,11 @@ void Event_Update()
 
     // Check for savestates
     Savestates_Update();
+    
+    // hide UI if set to off
+    bool hide = LabOptions_Record[OPTREC_CPUMODE].val == 0 && LabOptions_Record[OPTREC_HMNMODE].val == 0;
+    HUDCamData *hud_cam = event_vars->hudcam_gobj->userdata;
+    hud_cam->hide = hide;
 }
 
 void Event_Think_LabState_Normal(GOBJ *event) {

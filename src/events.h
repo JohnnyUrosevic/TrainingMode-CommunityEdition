@@ -123,7 +123,6 @@ typedef struct EventPage
     EventDesc **events;
 } EventPage;
 
-
 typedef struct evFunction
 {
     void (*Event_Init)(GOBJ *event);
@@ -131,6 +130,50 @@ typedef struct evFunction
     void (*Event_Think)(GOBJ *event);
     EventMenu **menu_start;
 } evFunction;
+
+typedef struct Rect
+{
+    float x, y, w, h;
+} Rect;
+
+static inline void RectShrink(Rect *dst, float size)
+{
+    dst->x += size;
+    dst->y += size;
+    dst->w -= size * 2.f;
+    dst->h -= size * 2.f;
+}
+
+static inline void RectSplitL(Rect *dst, Rect *src, float size, float padding)
+{
+    *dst = (Rect) { src->x, src->y, size, src->h };
+    src->x += size + padding;
+    src->w -= size + padding;
+}
+
+static inline void RectSplitR(Rect *dst, Rect *src, float size, float padding)
+{
+    *dst = (Rect) { src->x + src->w - size, src->y, size, src->h };
+    src->w -= size + padding;
+}
+
+static inline void RectSplitU(Rect *dst, Rect *src, float size, float padding)
+{
+    *dst = (Rect) { src->x, src->y, src->w, size };
+    src->y += size + padding;
+    src->h -= size + padding;
+}
+
+static inline void RectSplitD(Rect *dst, Rect *src, float size, float padding)
+{
+    *dst = (Rect) { src->x, src->y + src->h - size, src->w, size };
+    src->h -= size + padding;
+}
+
+void HUD_DrawRects(Rect *rects, GXColor *colors, int count);
+void HUD_DrawText(const char *text, Rect *pos, float size);
+void HUD_DrawActionLogBar(u8 *action_log, GXColor *color_lookup, int log_count);
+void HUD_DrawActionLogKey(char **action_names, GXColor *action_colors, int action_count);
 
 typedef struct RNGControl
 {
@@ -140,6 +183,13 @@ typedef struct RNGControl
     u8 gnw_hammer;      // 0x3
     u8 nana_throw;      // 0x4
 } RNGControl;
+
+typedef struct HUDCamData {
+    bool hide;
+    int canvas;
+    u32 text_cache_used;
+    Text *text_cache[32];
+} HUDCamData;
 
 typedef struct EventVars
 {
@@ -165,6 +215,11 @@ typedef struct EventVars
     evFunction evFunction;      // event specific functions
     HSD_Archive *event_archive; // event archive header
     DevText *db_console_text;
+    GOBJ *hudcam_gobj;
+    void (*HUD_DrawRects)(Rect *rects, GXColor *colors, int count);
+    void (*HUD_DrawText)(const char *text, Rect *pos, float size);
+    void (*HUD_DrawActionLogBar)(u8 *action_log, GXColor *color_lookup, int log_count);
+    void (*HUD_DrawActionLogKey)(char **action_names, GXColor *action_colors, int action_count);
 } EventVars;
 #define event_vars_ptr_loc ((EventVars**)0x803d7054)
 #define event_vars (*event_vars_ptr_loc)
@@ -193,6 +248,9 @@ void TM_CreateWatermark(void);
 #define GXLINK_MENUTEXT 12
 #define GXPRI_MENUTEXT GXPRI_MENUMODEL + 1
 
+#define GXLINK_HUD 18
+#define GXPRI_HUD 78
+
 // Message
 void Message_Init(void);
 GOBJ *Message_Display(int msg_kind, int queue_num, int msg_color, char *format, ...);
@@ -200,6 +258,8 @@ void Message_Manager(GOBJ *mngr_gobj);
 void Message_Destroy(GOBJ **msg_queue, int msg_num);
 void Message_Add(GOBJ *msg_gobj, int queue_num);
 void Message_CObjThink(GOBJ *gobj);
+
+void HUD_CObjThink(GOBJ *gobj);
 
 #define MSGQUEUE_NUM 7
 #define MSGQUEUE_SIZE 8

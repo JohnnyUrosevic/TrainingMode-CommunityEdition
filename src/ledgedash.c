@@ -6,14 +6,14 @@ static GXColor tmgbar_blue = {128, 128, 255, 255};
 static GXColor tmgbar_green = {128, 255, 128, 255};
 static GXColor tmgbar_cyan = {52, 202, 228, 255};
 static GXColor tmgbar_red = {255, 128, 128, 255};
-static GXColor tmgbar_indigo = {230, 22, 198, 255};
+static GXColor tmgbar_magenta = {230, 22, 198, 255};
 static GXColor tmgbar_white = {255, 255, 255, 255};
 static GXColor *tmgbar_colors[] = {
     &tmgbar_black,
     &tmgbar_grey,
     &tmgbar_green,
     &tmgbar_cyan,
-    &tmgbar_indigo,
+    &tmgbar_magenta,
     &tmgbar_white,
     &tmgbar_red,
     &tmgbar_blue,
@@ -85,6 +85,7 @@ static EventOption LdshOptions_Main[] = {
         .name = "HUD",
         .desc = {"Toggle visibility of the HUD."},
         .val = 1,
+        .OnChange = Ledgedash_ChangeShowHUD,
     },
     {
         .kind = OPTKIND_TOGGLE,
@@ -277,33 +278,21 @@ void Event_Exit(GOBJ *menu)
 // Ledgedash functions
 void Ledgedash_HUDInit(LedgedashData *event_data)
 {
-
-    // create hud cobj
-    GOBJ *hudcam_gobj = GObj_Create(19, 20, 0);
-    COBJDesc ***dmgScnMdls = Archive_GetPublicAddress(*stc_ifall_archive, (void *)0x803f94d0);
-    COBJDesc *cam_desc = dmgScnMdls[1][0];
-    COBJ *hud_cobj = COBJ_LoadDesc(cam_desc);
-    // init camera
-    GObj_AddObject(hudcam_gobj, R13_U8(-0x3E55), hud_cobj);
-    GOBJ_InitCamera(hudcam_gobj, Ledgedash_HUDCamThink, 7);
-    hudcam_gobj->cobj_links = 1 << 18;
-
     GOBJ *hud_gobj = GObj_Create(0, 0, 0);
     event_data->hud.gobj = hud_gobj;
     // Load jobj
     JOBJ *hud_jobj = JOBJ_LoadJoint(event_data->assets->hud);
     GObj_AddObject(hud_gobj, 3, hud_jobj);
-    GObj_AddGXLink(hud_gobj, GXLink_Common, 18, 80);
+    GObj_AddGXLink(hud_gobj, GXLink_Common, GXLINK_HUD, 80);
 
     // create text canvas
-    int canvas = Text_CreateCanvas(2, hud_gobj, 14, 15, 0, 18, 81, 19);
+    int canvas = Text_CreateCanvas(2, hud_gobj, 14, 15, 0, GXLINK_HUD, 81, 19);
     event_data->hud.canvas = canvas;
 
     // init text
     Text **text_arr = &event_data->hud.text_angle;
     for (int i = 0; i < 2; i++)
     {
-
         // Create text object
         Text *hud_text = Text_CreateText(2, canvas);
         text_arr[i] = hud_text;
@@ -335,37 +324,10 @@ void Ledgedash_HUDInit(LedgedashData *event_data)
     // reset all bar colors
     JOBJ *timingbar_jobj;
     JOBJ_GetChild(hud_jobj, &timingbar_jobj, LCLJOBJ_BAR, -1); // get timing bar jobj
-    DOBJ *d = timingbar_jobj->dobj;
-    int count = 0;
-    while (d != 0)
-    {
-        // if a box dobj
-        if ((count >= 0) && (count < 30))
-        {
-
-            // if mobj exists (it will)
-            MOBJ *m = d->mobj;
-            if (m != 0)
-            {
-
-                HSD_Material *mat = m->mat;
-
-                // set alpha
-                mat->alpha = 0.7;
-
-                // set color
-                mat->diffuse = tmgbar_black;
-            }
-        }
-
-        // inc
-        count++;
-        d = d->next;
-    }
+    JOBJ_SetFlagsAll(timingbar_jobj, JOBJ_HIDDEN);
 }
 void Ledgedash_HUDThink(LedgedashData *event_data, FighterData *hmn_data)
 {
-
     // run tip logic
     Tips_Think(event_data, hmn_data);
 
@@ -508,47 +470,6 @@ void Ledgedash_HUDThink(LedgedashData *event_data, FighterData *hmn_data)
         JOBJ_AddAnimAll(hud_jobj, 0, matanim, 0);
         JOBJ_ReqAnimAll(hud_jobj, 0);
     }
-
-    // update bar colors
-    JOBJ *timingbar_jobj;
-    JOBJ_GetChild(hud_jobj, &timingbar_jobj, LCLJOBJ_BAR, -1); // get timing bar jobj
-    DOBJ *d = timingbar_jobj->dobj;
-    int count = 0;
-    while (d != 0)
-    {
-        // if a box dobj
-        if ((count >= 0) && (count < 30))
-        {
-
-            // if mobj exists (it will)
-            MOBJ *m = d->mobj;
-            if (m != 0)
-            {
-
-                HSD_Material *mat = m->mat;
-                int this_frame = 29 - count;
-                GXColor *bar_color;
-
-                // check if GALINT frame
-                bar_color = tmgbar_colors[event_data->action_state.action_log[this_frame]];
-
-                mat->diffuse = *bar_color;
-            }
-        }
-
-        // inc
-        count++;
-        d = d->next;
-    }
-
-    // update HUD anim
-    JOBJ_AnimAll(hud_jobj);
-}
-void Ledgedash_HUDCamThink(GOBJ *gobj)
-{
-    // if HUD enabled and not paused
-    if (LdshOptions_Main[OPT_HUD].val == 0 && Pause_CheckStatus(1) != 2)
-        CObjThink_Common(gobj);
 }
 
 void Ledgedash_ResetThink(LedgedashData *event_data, GOBJ *hmn)
@@ -716,16 +637,49 @@ void Ledgedash_HitLogThink(LedgedashData *event_data, GOBJ *hmn)
         }
     }
 }
+
 void Ledgedash_HitLogGX(GOBJ *gobj, int pass)
 {
-
     static GXColor hitlog_ambient = {128, 0, 0, 50};
     static GXColor hit_diffuse = {255, 99, 99, 50};
     static GXColor grab_diffuse = {255, 0, 255, 50};
     static GXColor detect_diffuse = {255, 255, 255, 50};
 
     LdshHitlogData *hitlog_data = gobj->userdata;
-
+    
+    if (pass == 2) {
+        LedgedashData *event_data = event_vars->event_gobj->userdata;
+        static GXColor colors[] = {
+            {40, 40, 40, 180},
+            {120, 120, 120, 180},
+            {128, 255, 128, 180},
+            {52, 202, 228, 180},
+            {230, 22, 198, 180},
+            {255, 255, 255, 180},
+            {255, 128, 128, 180},
+            {128, 128, 255, 180},
+        };
+        static char *names[] = {
+            "Cliffwait",
+            "Fall",
+            "Jump",
+            "Airdodge",
+            "Attack",
+            "Landing",
+            "GALINT",
+        };
+        event_vars->HUD_DrawActionLogBar(
+            event_data->action_state.action_log,
+            colors,
+            countof(event_data->action_state.action_log)
+        );
+        event_vars->HUD_DrawActionLogKey(
+            names,
+            &colors[1],
+            countof(names)
+        );
+    }
+    
     for (int i = 0; i < hitlog_data->num; i++)
     {
         LdshHitboxData *this_ldsh_hit = &hitlog_data->hitlog[i];
@@ -767,6 +721,11 @@ void Ledgedash_FtInit(LedgedashData *event_data)
     //    event_data->cam->is_disable = 0;
     //    event_vars->Tip_Display(500 * 60, "Error:\nIt appears there are no\ngood ledges on this stage...");
     //}
+}
+
+void Ledgedash_ChangeShowHUD(GOBJ *menu_gobj, int show) {
+    HUDCamData *cam = event_vars->hudcam_gobj->userdata;
+    cam->hide = !show;
 }
 
 void Ledgedash_ChangeCamMode(GOBJ *menu_gobj, int value)
