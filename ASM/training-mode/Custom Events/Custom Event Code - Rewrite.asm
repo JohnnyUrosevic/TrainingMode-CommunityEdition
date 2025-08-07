@@ -8738,6 +8738,7 @@ EscapeSheikThink_CheckIfFailed:
     # Start Timer
     li r3, ResetTimer
     stb r3, Timer(REG_EventData)
+    b EscapeSheikThink_CheckTimer
 
 EscapeSheikThink_CheckIfFailed_End:
 EscapeSheikThink_CheckIfCPUDamaged:
@@ -8750,11 +8751,14 @@ EscapeSheikThink_CheckIfCPUDamaged:
     lbz r3, Timer(REG_EventData)
     cmpwi r3, 0
     bgt EscapeSheikThink_CheckIfCPUDamaged_End
+    # Play Sound
+    li r3, 0xAD
+    bl PlaySFX
     # Start Timer
-    li r3, ResetTimer
+    li r3, ResetTimer+60
     stb r3, Timer(REG_EventData)
+    b EscapeSheikThink_CheckTimer
 
-# Play Success Sound?
 # Maybe increment a high score or something idk
 EscapeSheikThink_CheckIfCPUDamaged_End:
 EscapeSheikThink_CheckForMistimedShine:
@@ -9052,9 +9056,6 @@ EscapeSheikThink_Chase_PassiveThink_HoldShieldSkip:
     # Advance state
     li r3, EventState_Reset
     stb r3, EventState(REG_EventData)
-    # Start timer
-    li r3, ResetTimer
-    stb r3, Timer(REG_EventData)
     b EscapeSheikThink_CheckTimer
 
 EscapeSheikThink_Chase_PassiveStandThink:
@@ -9193,9 +9194,6 @@ EscapeSheikThink_Chase_PassiveStandThink_HoldShieldSkip:
     # Advance state
     li r3, EventState_Reset
     stb r3, EventState(REG_EventData)
-    # Start timer
-    li r3, ResetTimer
-    stb r3, Timer(REG_EventData)
     b EscapeSheikThink_CheckTimer
 
 EscapeSheikThink_Chase_DownBoundThink:
