@@ -882,18 +882,22 @@ void EventUpdate(void)
 /// Hook Functions ///
 //////////////////////
 
-void TM_ConsoleThink(GOBJ *gobj)
+void TM_ConsoleToggle(GOBJ *gobj)
 {
     DevText *text = gobj->userdata;
+    text->show_text ^= 1;
+    text->show_background ^= 1;
+}
 
+void TM_ConsoleThink(GOBJ *gobj)
+{
     // Toggle console with L/R + Z
     for (int i = 0; i < 4; i++)
     {
         HSD_Pad *pad = PadGetMaster(i);
         if (pad->held & (HSD_TRIGGER_L | HSD_TRIGGER_R) && (pad->down & HSD_TRIGGER_Z))
         {
-            text->show_text ^= 1;
-            text->show_background ^= 1;
+            TM_ConsoleToggle(gobj);
             break;
         }
     }
@@ -915,6 +919,7 @@ void TM_CreateConsole(void)
     DevelopText_StoreBGColor(text, &color);
     DevelopText_StoreTextScale(text, 10, 12);
     stc_event_vars.db_console_text = text;
+    TM_ConsoleToggle(gobj);
 }
 
 void OnFileLoad(HSD_Archive *archive) // this function is run right after TmDt is loaded into memory on boot
