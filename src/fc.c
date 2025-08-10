@@ -3,7 +3,19 @@
 
 void Exit(GOBJ *menu);
 
-static EventOption Options_Main[] = {
+enum options_main {
+    OPT_BARREL,
+    OPT_EXIT,
+
+    OPT_COUNT
+};
+
+static EventOption Options_Main[OPT_COUNT] = {
+    {
+        .kind = OPTKIND_TOGGLE,
+        .name = "Target",
+        .desc = {"Enable a target to attack"},
+    },
     {
         .kind = OPTKIND_FUNC,
         .name = "Exit",
@@ -14,7 +26,7 @@ static EventOption Options_Main[] = {
 
 static EventMenu Menu_Main = {
     .name = "Float Cancel Training",
-    .option_num = sizeof(Options_Main) / sizeof(EventOption),
+    .option_num = countof(Options_Main),
     .options = Options_Main,
 };
 
@@ -35,6 +47,7 @@ enum Action {
     Action_Float,
     Action_FloatNeutral,
     Action_FloatAttack,
+    Action_Hitlag,
     Action_FloatAttackFall,
     Action_FloatAttackFastFall,
     Action_Landing,
@@ -47,6 +60,7 @@ static char *action_names[] = {
     "Float",
     "Deadzone",
     "Attack",
+    "Hitlag",
     "Fall",
     "Fastfall",
     "Landing",
@@ -56,14 +70,15 @@ static u32 action_log_cur;
 static u8 action_log[30];
 
 static GXColor action_colors[Action_Count] = {
-    {40, 40, 40, 180},  // dark gray
-    {80, 80, 80, 180},  // dark gray
-    {255, 128, 128, 180}, // red
-    {230, 22, 198, 180}, // magenta
-    {52, 202, 228, 180}, // cyan
-    {128, 128, 255, 180}, // blue
-    {128, 255, 128, 180}, // green
-    {220, 220, 70, 180}, // yellow
+    {40, 40, 40, 180},  // dark gray - none
+    {80, 80, 80, 180},  // light gray - wait
+    {255, 128, 128, 180}, // red - float
+    {230, 22, 198, 180}, // magenta - deadzone
+    {52, 202, 228, 180}, // cyan - attack
+    {70, 40, 60, 180}, // hitlag
+    {128, 128, 255, 180}, // blue - fall
+    {128, 255, 128, 180}, // green - fastfall
+    {220, 220, 70, 180}, // yellow - landing
 };
 
 void GX(GOBJ *gobj, int pass) {
@@ -112,44 +127,100 @@ void Event_Init(GOBJ *menu) {
 // prevent action log from filling until first jump.
 static bool started = false;
 
-void Event_Think(GOBJ *menu) {
+static GOBJ *barrel;
+
+void Barrel_Spawn(void) {
+    Vec3 pos = { 0 };
+    SpawnItem spawn = {
+        .it_kind = ITEM_BARREL,
+        .pos = pos,
+        .pos2 = pos,
+        .facing_direction = 1,
+        .is_raycast_below = 1,
+    };
+    barrel = Item_CreateItem2(&spawn);
+}
+
+int Barrel_OnTakeDamage(GOBJ *_) {
     GOBJ *ft = Fighter_GetGObj(0);
     FighterData *ft_data = ft->userdata;
     int state = ft_data->state_id;
-    int is_fastfall = ft_data->flags.is_fastfall;
     
-    // determine current action
-    int cur_action;
-    bool reset = false; 
-    if (state == ASID_JUMPF || state == ASID_JUMPB) {
-        started = true;
-        cur_action = Action_None;
-        
-        // reset action log on the final frame of jumpsquat
-        reset = ft_data->TM.state_frame == 2;
-    } else if (state == ASID_FLOAT) {
-        if (ft_data->input.lstick.X == 0.f && ft_data->input.lstick.Y == 0.f)
-            cur_action = Action_FloatNeutral;
-        else
-            cur_action = Action_Float;
-    } else if (state >= ASID_FLOATATTACKN && state <= ASID_FLOATATTACKD) {
-        if (ft_data->phys.self_vel.Y == 0.f)
-            cur_action = Action_FloatAttack;
-        else
-            cur_action = is_fastfall ? Action_FloatAttackFastFall : Action_FloatAttackFall;
-    } else if (state == ASID_LANDING || state == ASID_SQUAT || state == ASID_SQUATWAIT || state == ASID_SQUATRV) {
-        cur_action = Action_Landing;
-    } else {
-        cur_action = Action_Wait;
+    if (ASID_FLOATATTACKN <= state && state <= ASID_FLOATATTACKD) {
+        ItemData *data = barrel->userdata;
+        Effect_SpawnSync(1063, barrel, &data->pos);
     }
-        
-    if (!started) return;
+    return false;
+}
+void Barrel_OnDestroy(GOBJ *_) {
+    if (Options_Main[OPT_BARREL].val)
+        Barrel_Spawn();
+}
+
+void Event_Think(GOBJ *menu) {
+    // barrel ------------------------------------------------------------------
     
-    if (reset) {
-        memset(action_log, Action_None, sizeof(action_log));
-        action_log_cur = 0;
-    } else if (action_log_cur < countof(action_log)) {
-        action_log[action_log_cur++] = cur_action;
+    if (Options_Main[OPT_BARREL].val) {
+        if (barrel == 0)
+            Barrel_Spawn();
+        
+        // Some internal functions adjust these in think functions,
+        // so we need to set it every frame.
+        ItemData *data = barrel->userdata;
+        data->it_func->OnTakeDamage = Barrel_OnTakeDamage;
+        data->it_func->OnDestroy = Barrel_OnDestroy;
+        data->can_hold = false;
+    }
+    
+    if (!Options_Main[OPT_BARREL].val && barrel != 0) {
+        GObj_Destroy(barrel);
+        barrel = 0;
+    }
+
+    // action log --------------------------------------------------------------
+    
+    {
+        GOBJ *ft = Fighter_GetGObj(0);
+        FighterData *ft_data = ft->userdata;
+        
+        int state = ft_data->state_id;
+        int is_fastfall = ft_data->flags.is_fastfall;
+        
+        // determine current action
+        int cur_action;
+        bool reset = false;
+        if (ft_data->flags.hitlag) {
+            cur_action = Action_Hitlag;
+        } else if (state == ASID_JUMPF || state == ASID_JUMPB) {
+            started = true;
+            cur_action = Action_None;
+            
+            // reset action log on the final frame of jumpsquat
+            reset = ft_data->TM.state_frame == 2;
+        } else if (state == ASID_FLOAT) {
+            if (ft_data->input.lstick.X == 0.f && ft_data->input.lstick.Y == 0.f)
+                cur_action = Action_FloatNeutral;
+            else
+                cur_action = Action_Float;
+        } else if (state >= ASID_FLOATATTACKN && state <= ASID_FLOATATTACKD) {
+            if (ft_data->phys.self_vel.Y == 0.f)
+                cur_action = Action_FloatAttack;
+            else
+                cur_action = is_fastfall ? Action_FloatAttackFastFall : Action_FloatAttackFall;
+        } else if (state == ASID_LANDING || state == ASID_SQUAT || state == ASID_SQUATWAIT || state == ASID_SQUATRV) {
+            cur_action = Action_Landing;
+        } else {
+            cur_action = Action_Wait;
+        }
+            
+        if (!started) return;
+        
+        if (reset) {
+            memset(action_log, Action_None, sizeof(action_log));
+            action_log_cur = 0;
+        } else if (action_log_cur < countof(action_log)) {
+            action_log[action_log_cur++] = cur_action;
+        }
     }
 }
 
