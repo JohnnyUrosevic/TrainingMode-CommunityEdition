@@ -137,7 +137,7 @@ void Event_Think(GOBJ *menu) {
             cur_action = Action_FloatAttack;
         else
             cur_action = is_fastfall ? Action_FloatAttackFastFall : Action_FloatAttackFall;
-    } else if (state == ASID_LANDING) {
+    } else if (state == ASID_LANDING || state == ASID_SQUAT || state == ASID_SQUATWAIT || state == ASID_SQUATRV) {
         cur_action = Action_Landing;
     } else {
         cur_action = Action_Wait;
