@@ -1898,6 +1898,50 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
 
                 break;
             }
+            case (CPUTDI_NATURAL):
+            {
+                int x, y;
+                switch (HSD_Randi(eventData->cpu_hitnum > 1 ? 8 : 5)) {
+                    // upper half TDI angles
+                    case 0:
+                        x = -127;
+                        y = 0;
+                        break;
+                    case 1:
+                        x = 127;
+                        y = 0;
+                        break;
+                    case 2:
+                        x = -89;
+                        y = 89;
+                        break;
+                    case 3:
+                        x = 89;
+                        y = 89;
+                        break;
+                    case 4:
+                        x = 0;
+                        y = 127;
+                        break;
+                    
+                    // downwards TDI angles - only apply in the air to avoid floorhugging
+                    case 5:
+                        x = 89;
+                        y = -89;
+                        break;
+                    case 6:
+                        x = -89;
+                        y = -89;
+                        break;
+                    case 7:
+                        x = 0;
+                        y = -127;
+                        break;
+                }
+                cpu_data->cpu.lstickX = x;
+                cpu_data->cpu.lstickY = y;
+                break;
+            }
             case (CPUTDI_CUSTOM):
             {
                 int cpu_hitnum = eventData->cpu_hitnum;

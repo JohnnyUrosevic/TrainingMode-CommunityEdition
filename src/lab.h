@@ -1669,6 +1669,7 @@ enum cpu_tdi
     CPUTDI_RANDOM,
     CPUTDI_IN,
     CPUTDI_OUT,
+    CPUTDI_NATURAL,
     CPUTDI_CUSTOM,
     CPUTDI_RANDOM_CUSTOM,
     CPUTDI_NONE,
@@ -1820,7 +1821,7 @@ enum cpu_option
 static const char *LabValues_Shield[] = {"Off", "On Until Hit", "On"};
 static const char *LabValues_ShieldDir[] = {"Neutral", "Up", "Towards", "Down", "Away"};
 static const char *LabValues_CPUBehave[] = {"Stand", "Shield", "Crouch", "Jump"};
-static const char *LabValues_TDI[] = {"Random", "Inwards", "Outwards", "Custom", "Random Custom", "None"};
+static const char *LabValues_TDI[] = {"Random", "Inwards", "Outwards", "Natural", "Custom", "Random Custom", "None"};
 static const char *LabValues_ASDI[] = {"None", "Auto", "Away", "Towards", "Left", "Right", "Up", "Down"};
 static const char *LabValues_SDIDir[] = {"Random", "Away", "Towards", "Up", "Down", "Left", "Right"};
 static const char *LabValues_Tech[] = {"Random", "In Place", "Away", "Towards", "None"};
