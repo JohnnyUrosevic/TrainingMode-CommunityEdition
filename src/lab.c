@@ -4355,15 +4355,6 @@ void Record_MemcardLoad(int slot, int file_no)
             LabOptions_Record[OPTREC_LOOP].val = menu_settings->loop_inputs;
             LabOptions_Record[OPTREC_AUTORESTORE].val = menu_settings->auto_restore;
 
-            // enter recording menu
-            MenuData *menu_data = event_vars->menu_gobj->userdata;
-            EventMenu *curr_menu = menu_data->curr_menu;
-            // update curr_menu
-            EventMenu *next_menu = curr_menu->options[2].menu;
-            next_menu->prev = curr_menu;
-            curr_menu = next_menu;
-            menu_data->curr_menu = curr_menu;
-
             // save to personal savestate
             event_vars->Savestate_Save_v1(event_vars->savestate, 0);
             event_vars->savestate_saved_while_mirrored = event_vars->loaded_mirrored;
