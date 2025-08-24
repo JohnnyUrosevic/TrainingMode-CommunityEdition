@@ -1900,46 +1900,26 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
             }
             case (CPUTDI_NATURAL):
             {
-                int x, y;
-                switch (HSD_Randi(eventData->cpu_hitnum > 1 ? 8 : 5)) {
+                struct DI { s8 x; s8 y; };
+                static const struct DI di_options[] = {
                     // upper half TDI angles
-                    case 0:
-                        x = -127;
-                        y = 0;
-                        break;
-                    case 1:
-                        x = 127;
-                        y = 0;
-                        break;
-                    case 2:
-                        x = -89;
-                        y = 89;
-                        break;
-                    case 3:
-                        x = 89;
-                        y = 89;
-                        break;
-                    case 4:
-                        x = 0;
-                        y = 127;
-                        break;
+                    {-127, 0},
+                    {127, 0},
+                    {-89, 89},
+                    {89, 89},
+                    {0, 127},
                     
-                    // downwards TDI angles - only apply in the air to avoid floorhugging
-                    case 5:
-                        x = 89;
-                        y = -89;
-                        break;
-                    case 6:
-                        x = -89;
-                        y = -89;
-                        break;
-                    case 7:
-                        x = 0;
-                        y = -127;
-                        break;
-                }
-                cpu_data->cpu.lstickX = x;
-                cpu_data->cpu.lstickY = y;
+                    // downwards TDI angles - only apply during combos to avoid floorhugging
+                    {89, -89},
+                    {-89, -89},
+                    {0, -127},
+                };
+                
+                int di_num = eventData->cpu_hitnum > 1 ? 8 : 5;
+                struct DI di = di_options[HSD_Randi(di_num)];
+                
+                cpu_data->cpu.lstickX = di.x;
+                cpu_data->cpu.lstickY = di.y;
                 break;
             }
             case (CPUTDI_CUSTOM):
