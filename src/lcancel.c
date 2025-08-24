@@ -13,7 +13,7 @@ enum lcancel_option
     OPTLC_COUNT
 };
 static const char *LcOptions_Barrel[] = {"Off", "Stationary", "Move"};
-static const char *LcOptions_Barrel_Intangibility_Rate[] = {"Off", "Low", "Middle", "High"};
+static const char *LcOptions_Barrel_Intangibility[] = {"Off", "Rare", "Medium", "Often"};
 static EventOption LcOptions_Main[OPTLC_COUNT] = {
     // Target
     {
@@ -25,15 +25,14 @@ static EventOption LcOptions_Main[OPTLC_COUNT] = {
         .values = LcOptions_Barrel,
         .OnChange = LCancel_ChangeBarrel,
     },
-    // Target's Intangibility Rate
+    // Target Intangibility
     {
         .kind = OPTKIND_STRING,
-        .value_num = sizeof(LcOptions_Barrel_Intangibility_Rate) / 4,
-        .name = "Target's Intangibility Rate",
-        .desc = {"Target sometimes becomes intangible to",
-                 "practice L-cancel inputs for both hit",
-                 "and no-hit timings."},
-        .values = LcOptions_Barrel_Intangibility_Rate,
+        .value_num = sizeof(LcOptions_Barrel_Intangibility) / 4,
+        .name = "Target Intangibility",
+        .desc = {"Target cycles intangibility to practice",
+                 "L-cancel timing on both hit and whiff"},
+        .values = LcOptions_Barrel_Intangibility,
     },
     // HUD
     {
@@ -502,11 +501,11 @@ static void UpdateBarrelIntangibility(LCancelData *event_data, GOBJ *barrel_gobj
 
         // determine intangibility duration based on option value
         int intangibility_duration;
-        if (LcOptions_Main[OPTLC_BARREL_INTANGIBILITY_RATE].val == 1) // Low
+        if (LcOptions_Main[OPTLC_BARREL_INTANGIBILITY_RATE].val == 1) // rare
             intangibility_duration = 40;
-        else if (LcOptions_Main[OPTLC_BARREL_INTANGIBILITY_RATE].val == 2) // Middle
+        else if (LcOptions_Main[OPTLC_BARREL_INTANGIBILITY_RATE].val == 2) // medium
             intangibility_duration = 60;
-        else if (LcOptions_Main[OPTLC_BARREL_INTANGIBILITY_RATE].val == 3) // High
+        else if (LcOptions_Main[OPTLC_BARREL_INTANGIBILITY_RATE].val == 3) // often
             intangibility_duration = 80;
         else
             intangibility_duration = 0;
@@ -542,7 +541,6 @@ void Barrel_Think(LCancelData *event_data)
     }
     case (1): // stationary
     {
-
         // if not spawned, spawn
         if (barrel_gobj == 0)
         {
