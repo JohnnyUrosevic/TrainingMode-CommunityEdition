@@ -814,7 +814,7 @@ struct Playerblock
     u16 stamina;         // 0x60
     int falls[2];        // 0x68
     int ko[6];           // 0x70
-    int x88;
+    int match_frame_count;
     u16 selfDestructs;
     u8 stocks;
     int coins_curr;
@@ -823,9 +823,16 @@ struct Playerblock
     int x9c;
     int stickSmashes[2];
     int tag;
-    u8 xac_80 : 1;        // 0xac, 0x80
-    u8 is_multispawn : 1; // 0xac, 0x40
-    u8 xac_3f : 6;        // 0xac, 0x3f
+    struct {
+        u8 b0 : 1;
+        u8 is_multispawn : 1;
+        u8 b2 : 1;
+        u8 b3 : 1;
+        u8 b4 : 1;
+        u8 is_metal : 1;
+        u8 b6 : 1;
+        u8 b7 : 1;
+    } flags;              // 0xac
     u8 xad;               // 0xad
     u8 xae;               // 0xae
     u8 xaf;               // 0xaf
@@ -1784,7 +1791,7 @@ struct ftCommonData
     float x6e4;                                // 0x6e4
     float x6e8;                                // 0x6e8
     float x6ec;                                // 0x6ec
-    float unk_additional_armor;                // 0x6f0
+    float metal_armor;                         // 0x6f0
     float x6f4;                                // 0x6f4
     float x6f8;                                // 0x6f8
     float x6fc;                                // 0x6fc
@@ -2371,8 +2378,8 @@ struct FighterData
     int x201c;                            // 0x201c
     int x2020;                            // 0x2020
     int x2024;                            // 0x2024
-    int x2028;                            // 0x2028
-    int x202c;                            // 0x202c
+    int metal_timer;                      // 0x2028
+    int metal_health;                     // 0x202c
     int x2030;                            // 0x2030
     int x2034;                            // 0x2034
     int x2038;                            // 0x2038
@@ -2609,8 +2616,8 @@ struct FighterData
         unsigned char x2223_4 : 1;                // 0x10 - 0x2223
         unsigned char x2223_5 : 1;                // 0x8 - 0x2223
         unsigned char x2223_6 : 1;                // 0x4 - 0x2223, footstool related? checked @ 800808dc
-        unsigned char x2223_7 : 1;                // 0x2 - 0x2223
-        unsigned char x2223_8 : 1;                // 0x1 - 0x2223, related to armor @ 8008d9f8
+        unsigned char is_always_metal : 1;        // 0x2 - 0x2223
+        unsigned char is_metal : 1;               // 0x1 - 0x2223
         unsigned char x2224_1 : 1;                // 0x80 - 0x2224
         unsigned char x2224_2 : 1;                // 0x40 - 0x2224
         unsigned char stamina_dead : 1;           // 0x20 - 0x2224
