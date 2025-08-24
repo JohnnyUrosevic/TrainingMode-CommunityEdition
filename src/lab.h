@@ -88,6 +88,9 @@ static float GetAngleOutOfDeadzone(float angle, int lastSDIWasCardinal);
 static void DistributeChances(s16 *chances[], unsigned int chance_count);
 static void ReboundChances(s16 *chances[], unsigned int chance_count, int just_changed_option);
 static int IsTechAnim(int state);
+static int is_getup_anim(int state);
+static int get_tech_vulnerable_start(int state, int fighter_type);
+static int get_tech_vulnerable_end(int state, int fighter_type);
 static bool CanWalljump(GOBJ* fighter);
 static int GetCurrentStateName(GOBJ *fighter, char *buf);
 static bool CheckHasJump(GOBJ *g);
@@ -2283,14 +2286,14 @@ static EventOption LabOptions_Tech[OPTTECH_COUNT] = {
         .values = LabOptions_TechLockout,
     },
     {
-        .option_kind = OPTKIND_STRING,
+        .kind = OPTKIND_STRING,
         .value_num = sizeof(LabOptions_TechOsd)/sizeof(*LabOptions_TechOsd),
-        .option_name = "Tech OSD",
+        .name = "Tech OSD",
         .desc = "Enable Tech Chasing OSD",
-        .option_values = LabOptions_TechOsd,
+        .values = LabOptions_TechOsd,
     },
     {
-        .option_kind = OPTKIND_INT,
+        .kind = OPTKIND_INT,
         .value_num = 101,
         .val = 25,
         .name = "Tech in Place Chance",

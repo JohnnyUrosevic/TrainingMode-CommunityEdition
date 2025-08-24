@@ -1503,16 +1503,13 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
         cpu_hit = true;
     }
 
-    bool exited_tech = is_tech_anim(last_state) && !is_tech_anim(cpu_state);
-    if (cpu_hit && exited_tech)
-    {
-        event_vars->Message_Display(15, hmn_data->ply, 0, "Tech chase\nFrame: %i", cpu_data->TM.state_prev_frames[0] - 19);
-    }
-
+    bool exited_tech = IsTechAnim(last_state) && !IsTechAnim(cpu_state);
     bool exited_getup = is_getup_anim(last_state) && !is_getup_anim(cpu_state);
-    if (cpu_hit && exited_getup)
+    if (cpu_hit && (exited_tech || exited_getup))
     {
-        event_vars->Message_Display(15, hmn_data->ply, 0, "Tech chase\nFrame: %i", cpu_data->TM.state_prev_frames[0]);
+        int vulnerable_start = get_tech_vulnerable_start(last_state, cpu_data->kind);
+        // Some missed tech animations are vulnerable at the beginning and the end, if you hit them in the beginning we will display a negative frame
+        event_vars->Message_Display(15, hmn_data->ply, 0, "Tech chase\nFrame: %i/%i", cpu_data->TM.state_prev_frames[0] - vulnerable_start, get_tech_vulnerable_end(last_state, cpu_data->kind) - vulnerable_start + 1);
     }
 
     // check if being thrown
@@ -6450,7 +6447,226 @@ static int IsTechAnim(int state) {
 }
 
 static int is_getup_anim(int state) {
-    return state == ASID_DOWNSTANDU || state == ASID_DOWNATTACKU || state == ASID_DOWNFOWARDU || state == ASID_DOWNBACKU;
+    return state == ASID_DOWNSTANDU || state == ASID_DOWNATTACKU || state == ASID_DOWNFOWARDU || state == ASID_DOWNBACKU
+        || state == ASID_DOWNSTANDD || state == ASID_DOWNATTACKD || state == ASID_DOWNFOWARDD || state == ASID_DOWNBACKD;
+}
+
+static int get_tech_vulnerable_start(int state, int fighter_type) {
+    switch (state) {
+        case ASID_PASSIVE:
+            switch (fighter_type) {
+                case FTKIND_PIKACHU:
+                case FTKIND_PICHU:
+                    return 25;
+                default:
+                    return 21;
+            }
+        case ASID_PASSIVESTANDF:
+        case ASID_PASSIVESTANDB:
+            return 21;
+        case ASID_DOWNSTANDU:
+            switch (fighter_type) {
+                case FTKIND_PEACH:
+                case FTKIND_SHEIK:
+                case FTKIND_ZELDA:
+                case FTKIND_POPO:
+                case FTKIND_NANA:
+                    return 21;
+                case FTKIND_MARTH:
+                case FTKIND_ROY:
+                    return 23;
+                case FTKIND_DK:
+                    return 25;
+                default:
+                    return 24;
+            }
+        case ASID_DOWNSTANDD:
+            switch (fighter_type) {
+                case FTKIND_PEACH:
+                case FTKIND_SHEIK:
+                case FTKIND_ZELDA:
+                case FTKIND_POPO:
+                case FTKIND_NANA:
+                    return 21;
+                case FTKIND_MARTH:
+                case FTKIND_ROY:
+                    return 23;
+                default:
+                    return 24;
+            }
+        case ASID_DOWNATTACKU:
+            switch (fighter_type) {
+                case FTKIND_JIGGLYPUFF:
+                case FTKIND_KIRBY:
+                    return 16;
+                case FTKIND_DK:
+                case FTKIND_PIKACHU:
+                case FTKIND_PICHU:
+                    return 20;
+                case FTKIND_YOSHI:
+                    return 21;
+                case FTKIND_MARIO:
+                case FTKIND_DRMARIO:
+                case FTKIND_LUIGI:
+                case FTKIND_NESS:
+                    return 26;
+                case FTKIND_MARTH:
+                case FTKIND_ROY:
+                case FTKIND_MEWTWO:
+                    return 32;
+                case FTKIND_GAW:
+                    return 35;
+                default:
+                    return 30;
+            }
+        case ASID_DOWNATTACKD:
+            switch (fighter_type) {
+                case FTKIND_DK:
+                    return 20;
+                case FTKIND_SHEIK:
+                    return 22;
+                case FTKIND_PIKACHU:
+                case FTKIND_PICHU:
+                    return 25;
+                case FTKIND_BOWSER:
+                case FTKIND_KIRBY:
+                case FTKIND_SAMUS:
+                    return 28;
+                case FTKIND_MARTH:
+                case FTKIND_ROY:
+                    return 29;
+                case FTKIND_FALCON:
+                case FTKIND_GANONDORF:
+                    return 30;
+                case FTKIND_GAW:
+                    return 34;
+                case FTKIND_MEWTWO:
+                    return 36;
+                default:
+                    return 27;
+            }
+        case ASID_DOWNFOWARDU:
+            switch (fighter_type) {
+                case FTKIND_PIKACHU:
+                case FTKIND_PICHU:
+                case FTKIND_SAMUS:
+                    return 15;
+                case FTKIND_JIGGLYPUFF:
+                case FTKIND_KIRBY:
+                    return 19;
+                case FTKIND_POPO:
+                case FTKIND_NANA:
+                case FTKIND_MARIO:
+                case FTKIND_DRMARIO:
+                case FTKIND_LUIGI:
+                case FTKIND_NESS:
+                case FTKIND_GAW:
+                case FTKIND_MEWTWO:
+                    return 22;
+                case FTKIND_FALCON:
+                case FTKIND_GANONDORF:
+                    return 24;
+                case FTKIND_LINK:
+                case FTKIND_YOUNGLINK:
+                    return 25;
+                default:
+                    return 20;
+            }
+        case ASID_DOWNFOWARDD:
+            switch (fighter_type) {
+                case FTKIND_DK:
+                case FTKIND_YOSHI:
+                    return 15;
+                case FTKIND_JIGGLYPUFF:
+                case FTKIND_KIRBY:
+                    return 24;
+                case FTKIND_BOWSER:
+                    return 28;
+                default:
+                    return 20;
+            }
+        case ASID_DOWNBACKU:
+            switch (fighter_type) {
+                case FTKIND_FALCON:
+                case FTKIND_GANONDORF:
+                case FTKIND_PIKACHU:
+                case FTKIND_PICHU:
+                case FTKIND_MARTH:
+                case FTKIND_ROY:
+                case FTKIND_PEACH:
+                case FTKIND_ZELDA:
+                    return 20;
+                case FTKIND_JIGGLYPUFF:
+                case FTKIND_KIRBY:
+                case FTKIND_SAMUS:
+                    return 21;
+                case FTKIND_DK:
+                case FTKIND_YOSHI:
+                    return 25;
+                case FTKIND_BOWSER:
+                    return 28;
+                case FTKIND_FOX:
+                case FTKIND_FALCO:
+                    return 30;
+                default:
+                    return 23;
+            }
+        case ASID_DOWNBACKD:
+            switch (fighter_type) {
+                case FTKIND_BOWSER:
+                case FTKIND_PIKACHU:
+                case FTKIND_PICHU:
+                case FTKIND_MARTH:
+                case FTKIND_ROY:
+                case FTKIND_PEACH:
+                case FTKIND_SHEIK:
+                case FTKIND_ZELDA:
+                case FTKIND_NESS:
+                    return 20;
+                case FTKIND_SAMUS:
+                    return 23;
+                case FTKIND_FALCON:
+                case FTKIND_GANONDORF:
+                case FTKIND_LINK:
+                case FTKIND_YOUNGLINK:
+                    return 26;
+                case FTKIND_JIGGLYPUFF:
+                case FTKIND_KIRBY:
+                    return 29;
+                case FTKIND_YOSHI:
+                    return 30;
+                default:
+                    return 25;
+            }
+    }
+}
+
+static int get_tech_vulnerable_end(int state, int fighter_type) {
+    switch (state) {
+        case ASID_PASSIVE:
+            return 26;
+        case ASID_PASSIVESTANDF:
+        case ASID_PASSIVESTANDB:
+            return 40;
+        case ASID_DOWNSTANDU:
+        case ASID_DOWNSTANDD:
+            return 30;
+        case ASID_DOWNATTACKU:
+            return 49;
+        case ASID_DOWNATTACKD:
+            switch (fighter_type) {
+                case FTKIND_PIKACHU:
+                case FTKIND_PICHU:
+                    return 50;
+                default:
+                    return 49;
+            }
+        case ASID_DOWNFOWARDU:
+        case ASID_DOWNFOWARDD:
+        case ASID_DOWNBACKU:
+        case ASID_DOWNBACKD:
+            return 35;
+    }
 }
 
 // Clean up percentages so the total is 100, evenly distributing the change.
