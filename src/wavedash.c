@@ -2,6 +2,7 @@
 
 enum options {
     OPT_TARGET,
+    OPT_SHORT_HOP,
     OPT_HUD,
     OPT_TIPS,
     OPT_HELP,
@@ -17,6 +18,16 @@ static EventOption WdOptions_Main[] = {
         .kind = OPTKIND_TOGGLE,
         .name = "Target",
         .desc = {"Highlight an area of the stage to wavedash towards."},
+    },
+    // Short Hop
+    {
+        .kind = OPTKIND_TOGGLE,
+        .name = "Short Hop Indicator",
+        .val = 1,
+        .desc = {"A sparkling indicator for when you short hop.",
+                 "Short hops can avoid excess frames spent",
+                 "in airdodge in case you are late, especially",
+                 "at long/sharp wavedash angles"},
     },
     // HUD
     {
@@ -195,6 +206,13 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     // run sequence logic
     event_data->timer++;
 
+    // The game tracks whether the current jump is going to be a short hop in
+    // `state_var1`. The value at the end of kneebend is what we want.
+    if (hmn_data->state_id == ASID_KNEEBEND)
+        event_data->short_hop = hmn_data->state_var.state_var1;
+    if (WdOptions_Main[OPT_SHORT_HOP].val && event_data->short_hop)
+        Fighter_ColAnim_Apply(hmn_data, 107, 0); // make sparkles
+
     // Record early airdodge timings. May be overwritten by a later successful
     // timing in case player uses multiple presses.
     if (hmn_data->input.down & (PAD_TRIGGER_L | PAD_TRIGGER_R) &&
@@ -236,8 +254,9 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
         return;
     }
 
-    // reset variables
+    // Reset
     event_data->timer = -1;
+    Fighter_ColAnim_Remove(hmn_data, 107); // remove sparkles
 
     // update bar frame colors
     JOBJ *hud_jobj = event_data->hud.gobj->hsd_object;
