@@ -50,6 +50,7 @@ struct WavedashData
     struct
     {
         u8 shield_num;
+        u8 short_hop;
     } tip;
     float wd_maxdstn;
     int timer;

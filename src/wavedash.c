@@ -642,9 +642,21 @@ void Tips_Think(WavedashData *event_data, FighterData *hmn_data)
     if (hmn_data->state_id == ASID_GUARDOFF && hmn_data->TM.state_frame == 0 &&
         hmn_data->TM.state_prev[3] == ASID_LANDINGFALLSPECIAL)
     {
-        event_data->tip.shield_num++;
-        if (event_data->tip.shield_num % 5 == 2)
+        if (event_data->tip.shield_num++ % 5 == 2)
             event_vars->Tip_Display(5 * 60, "Tip:\nDon't hold the trigger! Quickly \npress and release to prevent \nshielding after wavedashing.");
+    }
+
+    // Check for slow airdodge landing after full hop
+    if (hmn_data->state_id == ASID_LANDINGFALLSPECIAL
+            && hmn_data->TM.state_frame == 0
+            && hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR
+            && hmn_data->TM.state_prev_frames[0] > 3 // slow to hit ground from airdodge
+            && hmn_data->TM.state_prev_frames[1] < 5 // slightly late airdodge timing
+            && event_data->wd_angle > 0              // ignore horizontal airdodge
+            && !event_data->short_hop)               // full hop
+    {
+        if (event_data->tip.short_hop++ % 8 == 2)
+            event_vars->Tip_Display(5 * 60, "Tip:\nUse short hop for wavedash!\nit can help you land faster\nwhen you airdodge late.");
     }
 }
 
