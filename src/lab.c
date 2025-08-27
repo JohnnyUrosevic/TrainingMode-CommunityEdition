@@ -5728,7 +5728,7 @@ void Event_Init(GOBJ *gobj)
         memcard->TM_LabCPUInputDisplay = LabOptions_General[OPTGEN_INPUT].val;
 
     // load taunt option, resetting if invalid
-    if (memcard->TM_LabTauntEnabled < LabOptions_General[OPTGEN_TAUNT].value_num)
+    if (memcard->TM_LabTauntEnabled <= 1)
         LabOptions_General[OPTGEN_TAUNT].val = memcard->TM_LabTauntEnabled;
     else
         memcard->TM_LabTauntEnabled = LabOptions_General[OPTGEN_TAUNT].val;
