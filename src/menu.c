@@ -186,13 +186,11 @@ void EventMenu_Update(GOBJ *gobj)
                 if (option->kind == OPTKIND_TOGGLE) {
                     EventMenu_ChangeOptionVal(gobj, option, !option->val);
                     SFX_PlayCommon(option->val ? 2 : 0);
-                    menu_data->mode = MenuMode_Shortcut;
                 }
                 else if (option->kind == OPTKIND_STRING || option->kind == OPTKIND_INT) {
                     int val = (option->val + 1 - option->value_min) % option->value_num + option->value_min;
                     EventMenu_ChangeOptionVal(gobj, option, val);
                     SFX_PlayCommon(2);
-                    menu_data->mode = MenuMode_Shortcut;
                 }
                 else if (option->kind == OPTKIND_MENU) {
                     if (menu_data->curr_menu == option->menu)
@@ -212,10 +210,6 @@ void EventMenu_Update(GOBJ *gobj)
                 break;
             }
         }
-    }
-    else if (menu_data->mode == MenuMode_Shortcut && pad->held == 0) {
-        // SC mode unpauses when inputs are released to prevent misinputs
-        EventMenu_ExitMenu(gobj);
     } else if (menu_data->mode == MenuMode_Paused) {
         EventMenu_MenuThink(gobj, curr_menu);
     }

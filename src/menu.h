@@ -64,7 +64,6 @@ struct EventMenu
 typedef enum MenuMode {
     MenuMode_Normal,
     MenuMode_Paused,
-    MenuMode_Shortcut,
 } MenuMode;
 typedef struct MenuData
 {
