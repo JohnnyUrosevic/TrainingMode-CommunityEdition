@@ -440,10 +440,24 @@ static CPUAction Lab_CPUActionJumpFull[] = {
 static CPUAction Lab_CPUActionJumpAway[] = {
     {
         .state     = ASID_ACTIONABLEAIR,
-        .stickX    = 127,
         .input     = PAD_BUTTON_X,
         .isLast    = 1,
+        .custom_check = CheckHasJump,
+        .stickX    = 127,
         .stickDir  = STCKDIR_AWAY,
+    },
+
+    // wiggle out if we can't jump
+    {
+        .state     = ASID_DAMAGEAIR,
+        .stickX    = 127,
+        .isLast    = 1,
+    },
+    
+    // otherwise do nothing
+    {
+        .state     = ASID_ACTIONABLEAIR,
+        .isLast    = 1,
     },
 
     ActionEnd
@@ -451,10 +465,24 @@ static CPUAction Lab_CPUActionJumpAway[] = {
 static CPUAction Lab_CPUActionJumpTowards[] = {
     {
         .state     = ASID_ACTIONABLEAIR,
-        .stickX    = 127,
         .input     = PAD_BUTTON_X,
         .isLast    = 1,
+        .custom_check = CheckHasJump,
+        .stickX    = 127,
         .stickDir  = STCKDIR_TOWARD,
+    },
+
+    // wiggle out if we can't jump
+    {
+        .state     = ASID_DAMAGEAIR,
+        .stickX    = 127,
+        .isLast    = 1,
+    },
+    
+    // otherwise do nothing
+    {
+        .state     = ASID_ACTIONABLEAIR,
+        .isLast    = 1,
     },
 
     ActionEnd
@@ -473,7 +501,13 @@ static CPUAction Lab_CPUActionJumpNeutral[] = {
         .stickX    = 127,
         .isLast    = 1,
     },
-
+    
+    // otherwise do nothing
+    {
+        .state     = ASID_ACTIONABLEAIR,
+        .isLast    = 1,
+    },
+    
     ActionEnd
 };
 static CPUAction Lab_CPUActionAirdodge[] = {
