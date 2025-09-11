@@ -75,6 +75,12 @@ static HSD_Pad *PadGetEngine(int player_index)
 {
     return &stc_engine_pads->pad[player_index];
 }
+static PADStatus *PadGetRaw(int player_index)
+{
+    PadLibData *p = stc_padlibdata;
+    u8 index = (p->qread + p->qnum - 1) % p->qnum;
+    return &p->queue[index].stat[player_index];
+}
 
 static float Math_Vec2Distance(Vec2 *a, Vec2 *b)
 {

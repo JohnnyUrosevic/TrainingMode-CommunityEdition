@@ -56,7 +56,8 @@ struct WavedashData
     float wd_maxdstn;
     int timer;
     int airdodge_frame;
-    float wd_angle;
+    float angle_real;
+    float angle_raw;
     int short_hop;
     int wd_attempted;
     int wd_succeeded;
