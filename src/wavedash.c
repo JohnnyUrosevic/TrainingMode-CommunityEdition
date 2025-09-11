@@ -214,7 +214,9 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     // Real airdodge
     if (hmn_data->TM.state_frame == 0 &&
             (hmn_data->state_id == ASID_ESCAPEAIR ||
-            (hmn_data->state_id == ASID_LANDINGFALLSPECIAL && hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR)))
+            (hmn_data->state_id == ASID_LANDINGFALLSPECIAL &&
+             hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR &&
+             hmn_data->TM.state_prev_frames[0] == 0)))
     {
         event_data->airdodge_frame = event_data->timer;
         Vec2 lstick = hmn_data->input.lstick;
