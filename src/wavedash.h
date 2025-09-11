@@ -7,6 +7,7 @@
 #define WDARROW_OFFSET 0.36
 #define WDARROW_ANIMFRAMES 4
 #define WDFRAMES 15
+#define FAILFRAMES 8
 
 #define TRGT_RANGEMAX 0.8
 #define TRGT_RANGEMIN 0.55
@@ -54,7 +55,7 @@ struct WavedashData
     } tip;
     float wd_maxdstn;
     int timer;
-    u8 airdodge_frame;
+    int airdodge_frame;
     float wd_angle;
     int short_hop;
     int wd_attempted;

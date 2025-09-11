@@ -194,15 +194,6 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     if (event_data->timer < 0)
         return;
 
-    // if grounded and not in kneebend, stop sequence
-    if (hmn_data->state_id != ASID_KNEEBEND
-            && hmn_data->state_id != ASID_LANDINGFALLSPECIAL
-            && hmn_data->phys.air_state == 0)
-    {
-        event_data->timer = -1;
-        return;
-    }
-
     // run sequence logic
     event_data->timer++;
 
@@ -226,37 +217,49 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     {
         event_data->airdodge_frame = event_data->timer;
         Vec2 lstick = hmn_data->input.lstick;
-        event_data->wd_angle = atan(fabs(lstick.Y / lstick.X));
+        event_data->wd_angle = atan2(fabs(lstick.Y), fabs(lstick.X));
     }
 
-    // Check for success/failure
     void *mat_anim = 0;
     if (hmn_data->state_id == ASID_LANDINGFALLSPECIAL
         && hmn_data->TM.state_frame == 0
         && hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR
         && hmn_data->TM.state_prev[2] == ASID_KNEEBEND)
     {
+        // success
         mat_anim = event_data->assets->hudmatanim[0];
+        event_data->wd_attempted++;
         event_data->wd_succeeded++;
 
         // check for perfect
         if (event_data->airdodge_frame == ((int)hmn_data->attr.jump_startup_time + 1))
             SFX_Play(303);
     }
-    else if (hmn_data->TM.state_frame >= 8 &&
+    else if (hmn_data->TM.state_frame >= FAILFRAMES &&
+             event_data->airdodge_frame > 0 &&
             (hmn_data->state_id == ASID_JUMPF ||
              hmn_data->state_id == ASID_JUMPB ||
              hmn_data->state_id == ASID_ESCAPEAIR)) {
+        // failure
         mat_anim = event_data->assets->hudmatanim[1];
+        event_data->wd_attempted++;
         SFX_PlayCommon(3);
-    } else {
-        // Wavedash is still in progress
+    } else if (hmn_data->state_id == ASID_KNEEBEND ||
+              (hmn_data->TM.state_frame < FAILFRAMES &&
+              (hmn_data->state_id == ASID_JUMPF ||
+               hmn_data->state_id == ASID_JUMPB ||
+               hmn_data->state_id == ASID_ESCAPEAIR))) {
+        // in progress
         return;
     }
 
     // Reset
     event_data->timer = -1;
     Fighter_ColAnim_Remove(hmn_data, 107); // remove sparkles
+
+    // Wavedash not attempted
+    if (event_data->airdodge_frame < 0)
+        return;
 
     // update bar frame colors
     JOBJ *hud_jobj = event_data->hud.gobj->hsd_object;
@@ -294,7 +297,6 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     Text_SetText(event_data->hud.text_angle, 0, "%.2f", fabs(event_data->wd_angle / M_1DEGREE));
 
     // update succession
-    event_data->wd_attempted++;
     int successful = event_data->wd_succeeded;
     float succession = 100.0 * event_data->wd_succeeded / event_data->wd_attempted;
     Text_SetText(event_data->hud.text_succession, 0, "%d (%.2f%)", successful, succession);
