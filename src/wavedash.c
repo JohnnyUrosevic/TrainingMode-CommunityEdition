@@ -271,33 +271,31 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     JOBJ *hud_jobj = event_data->hud.gobj->hsd_object;
     JOBJ *arrow_jobj;
     JOBJ_GetChild(hud_jobj, &arrow_jobj, WDJOBJ_ARROW, -1); // get timing bar jobj
-    // get in terms of bar timeframe
-    int jump_frame = ((WDFRAMES - 1) / 2) - (int)hmn_data->attr.jump_startup_time;
-    int input_frame = jump_frame + event_data->airdodge_frame - 1;
+    int timing = event_data->airdodge_frame - (int)hmn_data->attr.jump_startup_time - 1;
 
     // update arrow position
-    if (input_frame < WDFRAMES)
+    if (timing + WDFRAMES / 2 < WDFRAMES)
     {
         event_data->hud.arrow_prevpos = arrow_jobj->trans.X;
-        event_data->hud.arrow_nextpos = (-WDARROW_OFFSET * ((WDFRAMES - 1) / 2)) + (input_frame * 0.36);
-        JOBJ_ClearFlags(arrow_jobj, JOBJ_HIDDEN);
+        event_data->hud.arrow_nextpos = timing * WDARROW_OFFSET;
         event_data->hud.arrow_timer = WDARROW_ANIMFRAMES;
+        JOBJ_ClearFlags(arrow_jobj, JOBJ_HIDDEN);
     }
-    // hide arrow for this wd attempt
     else
     {
+        // hide arrow for this wd attempt
         event_data->hud.arrow_timer = 0;
         arrow_jobj->trans.X = 0;
         JOBJ_SetFlags(arrow_jobj, JOBJ_HIDDEN);
     }
 
     // updating timing text
-    if (input_frame < ((WDFRAMES - 1) / 2)) // is early
-        Text_SetText(event_data->hud.text_timing, 0, "%df Early", ((WDFRAMES - 1) / 2) - input_frame);
-    else if (input_frame == ((WDFRAMES - 1) / 2))
+    if (timing < 0) // is early
+        Text_SetText(event_data->hud.text_timing, 0, "%df Early", -timing);
+    else if (timing > 0)
+        Text_SetText(event_data->hud.text_timing, 0, "%df Late", timing);
+    else
         Text_SetText(event_data->hud.text_timing, 0, "Perfect");
-    else if (input_frame > ((WDFRAMES - 1) / 2))
-        Text_SetText(event_data->hud.text_timing, 0, "%df Late", input_frame - ((WDFRAMES - 1) / 2));
 
     // Update airdodge angle text
     // We show both the raw and real angles in case they differ
