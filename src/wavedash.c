@@ -1,4 +1,5 @@
 #include "wavedash.h"
+#include "events.h"
 
 enum options {
     OPT_TARGET,
@@ -194,15 +195,6 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     if (event_data->timer < 0)
         return;
 
-    // if grounded and not in kneebend, stop sequence
-    if (hmn_data->state_id != ASID_KNEEBEND
-            && hmn_data->state_id != ASID_LANDINGFALLSPECIAL
-            && hmn_data->phys.air_state == 0)
-    {
-        event_data->timer = -1;
-        return;
-    }
-
     // run sequence logic
     event_data->timer++;
 
@@ -222,35 +214,48 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     // Real airdodge
     if (hmn_data->TM.state_frame == 0 &&
             (hmn_data->state_id == ASID_ESCAPEAIR ||
-            (hmn_data->state_id == ASID_LANDINGFALLSPECIAL && hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR)))
+            (hmn_data->state_id == ASID_LANDINGFALLSPECIAL &&
+             hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR &&
+             hmn_data->TM.state_prev_frames[0] == 0)))
     {
         event_data->airdodge_frame = event_data->timer;
         Vec2 lstick = hmn_data->input.lstick;
-        event_data->wd_angle = atan(fabs(lstick.Y / lstick.X));
+        event_data->angle_real = -atan2(lstick.Y, fabs(lstick.X)) / M_1DEGREE;
+
+        PADStatus *stat = PadGetRaw(0);
+        event_data->angle_raw = -atan2(stat->stickY, fabs(stat->stickX)) / M_1DEGREE;
     }
 
-    // Check for success/failure
     void *mat_anim = 0;
     if (hmn_data->state_id == ASID_LANDINGFALLSPECIAL
         && hmn_data->TM.state_frame == 0
         && hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR
         && hmn_data->TM.state_prev[2] == ASID_KNEEBEND)
     {
+        // success
         mat_anim = event_data->assets->hudmatanim[0];
+        event_data->wd_attempted++;
         event_data->wd_succeeded++;
 
         // check for perfect
         if (event_data->airdodge_frame == ((int)hmn_data->attr.jump_startup_time + 1))
             SFX_Play(303);
     }
-    else if (hmn_data->TM.state_frame >= 8 &&
+    else if (hmn_data->TM.state_frame >= FAILFRAMES &&
+             event_data->airdodge_frame > 0 &&
             (hmn_data->state_id == ASID_JUMPF ||
              hmn_data->state_id == ASID_JUMPB ||
              hmn_data->state_id == ASID_ESCAPEAIR)) {
+        // failure
         mat_anim = event_data->assets->hudmatanim[1];
+        event_data->wd_attempted++;
         SFX_PlayCommon(3);
-    } else {
-        // Wavedash is still in progress
+    } else if (hmn_data->state_id == ASID_KNEEBEND ||
+              (hmn_data->TM.state_frame < FAILFRAMES &&
+              (hmn_data->state_id == ASID_JUMPF ||
+               hmn_data->state_id == ASID_JUMPB ||
+               hmn_data->state_id == ASID_ESCAPEAIR))) {
+        // in progress
         return;
     }
 
@@ -258,43 +263,50 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
     event_data->timer = -1;
     Fighter_ColAnim_Remove(hmn_data, 107); // remove sparkles
 
+    // Wavedash not attempted
+    if (event_data->airdodge_frame < 0)
+        return;
+
     // update bar frame colors
     JOBJ *hud_jobj = event_data->hud.gobj->hsd_object;
     JOBJ *arrow_jobj;
     JOBJ_GetChild(hud_jobj, &arrow_jobj, WDJOBJ_ARROW, -1); // get timing bar jobj
-    // get in terms of bar timeframe
-    int jump_frame = ((WDFRAMES - 1) / 2) - (int)hmn_data->attr.jump_startup_time;
-    int input_frame = jump_frame + event_data->airdodge_frame - 1;
+    int timing = event_data->airdodge_frame - (int)hmn_data->attr.jump_startup_time - 1;
 
     // update arrow position
-    if (input_frame < WDFRAMES)
+    if (timing + WDFRAMES / 2 < WDFRAMES)
     {
         event_data->hud.arrow_prevpos = arrow_jobj->trans.X;
-        event_data->hud.arrow_nextpos = (-WDARROW_OFFSET * ((WDFRAMES - 1) / 2)) + (input_frame * 0.36);
-        JOBJ_ClearFlags(arrow_jobj, JOBJ_HIDDEN);
+        event_data->hud.arrow_nextpos = timing * WDARROW_OFFSET;
         event_data->hud.arrow_timer = WDARROW_ANIMFRAMES;
+        JOBJ_ClearFlags(arrow_jobj, JOBJ_HIDDEN);
     }
-    // hide arrow for this wd attempt
     else
     {
+        // hide arrow for this wd attempt
         event_data->hud.arrow_timer = 0;
         arrow_jobj->trans.X = 0;
         JOBJ_SetFlags(arrow_jobj, JOBJ_HIDDEN);
     }
 
     // updating timing text
-    if (input_frame < ((WDFRAMES - 1) / 2)) // is early
-        Text_SetText(event_data->hud.text_timing, 0, "%df Early", ((WDFRAMES - 1) / 2) - input_frame);
-    else if (input_frame == ((WDFRAMES - 1) / 2))
+    if (timing < 0) // is early
+        Text_SetText(event_data->hud.text_timing, 0, "%df Early", -timing);
+    else if (timing > 0)
+        Text_SetText(event_data->hud.text_timing, 0, "%df Late", timing);
+    else
         Text_SetText(event_data->hud.text_timing, 0, "Perfect");
-    else if (input_frame > ((WDFRAMES - 1) / 2))
-        Text_SetText(event_data->hud.text_timing, 0, "%df Late", input_frame - ((WDFRAMES - 1) / 2));
 
-    // update airdodge angle
-    Text_SetText(event_data->hud.text_angle, 0, "%.2f", fabs(event_data->wd_angle / M_1DEGREE));
+    // Update airdodge angle text
+    // We show both the raw and real angles in case they differ
+    if (fabs(event_data->angle_real - event_data->angle_raw) < 1.0)
+        Text_SetText(event_data->hud.text_angle, 0, "%.1f",
+                event_data->angle_real);
+    else
+        Text_SetText(event_data->hud.text_angle, 0, "%.1f (%.1f)",
+                event_data->angle_real, event_data->angle_raw);
 
     // update succession
-    event_data->wd_attempted++;
     int successful = event_data->wd_succeeded;
     float succession = 100.0 * event_data->wd_succeeded / event_data->wd_attempted;
     Text_SetText(event_data->hud.text_succession, 0, "%d (%.2f%)", successful, succession);
@@ -652,7 +664,7 @@ void Tips_Think(WavedashData *event_data, FighterData *hmn_data)
             && hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR
             && hmn_data->TM.state_prev_frames[0] > 3 // slow to hit ground from airdodge
             && hmn_data->TM.state_prev_frames[1] < 5 // slightly late airdodge timing
-            && event_data->wd_angle > 0              // ignore horizontal airdodge
+            && event_data->angle_real > 0            // ignore horizontal airdodge
             && !event_data->short_hop)               // full hop
     {
         if (event_data->tip.short_hop++ % 8 == 2)
