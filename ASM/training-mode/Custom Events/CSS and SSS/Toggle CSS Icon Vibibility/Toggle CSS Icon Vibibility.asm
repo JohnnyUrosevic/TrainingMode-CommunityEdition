@@ -6,7 +6,7 @@
 
     .set REG_GObj, 31
     .set REG_Data, 30
-    .set REG_Whitelist, 29
+    .set REG_HmnWhitelist, 29
 
     # Ensure this is event mode
     load r3, SceneController
@@ -47,9 +47,9 @@
     lbz r4, CurrentEventPage(r4)
     rtocbl r12, TM_GetEventCharList
     stw r3, 0x0(REG_Data)
-    mr REG_Whitelist, r3
+    lwz REG_HmnWhitelist, 0x0(r3)
     # Check if exists
-    cmpwi REG_Whitelist, -1
+    cmpwi REG_HmnWhitelist, -1
     beq Original
 
     # Make P1 Undecided
