@@ -1649,6 +1649,21 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
     CPULOGIC_SDI:
     {
         static int lastSDIWasCardinal = 0;
+
+        // update move instance
+        if (eventData->cpu_lasthit != cpu_data->dmg.atk_instance_hurtby)
+        {
+            eventData->cpu_countertimer = 0;
+            eventData->cpu_hitnum++;
+            eventData->cpu_lasthit = cpu_data->dmg.atk_instance_hurtby;
+
+            // decide random SDI direction for grounded cpu
+            if ((LabOptions_CPU[OPTCPU_SDINUM].val > 0) && (LabOptions_CPU[OPTCPU_SDIDIR].val == SDIDIR_RANDOM))
+            {
+                eventData->cpu_sdidir = HSD_Randi(2);
+            }
+        }
+
         // if no more hitlag, enter tech state
         if (cpu_data->flags.hitlag == 0)
         {
@@ -1664,20 +1679,6 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
                 eventData->cpu_tech_lockout = 20;
             else if (trap_type == TECHTRAP_LATEST)
                 eventData->cpu_tech_lockout = 40;
-        }
-
-        // update move instance
-        if (eventData->cpu_lasthit != cpu_data->dmg.atk_instance_hurtby)
-        {
-            eventData->cpu_countertimer = 0;
-            eventData->cpu_hitnum++;
-            eventData->cpu_lasthit = cpu_data->dmg.atk_instance_hurtby;
-
-            // decide random SDI direction for grounded cpu
-            if ((LabOptions_CPU[OPTCPU_SDINUM].val > 0) && (LabOptions_CPU[OPTCPU_SDIDIR].val == SDIDIR_RANDOM))
-            {
-                eventData->cpu_sdidir = HSD_Randi(2);
-            }
         }
 
         // if final frame of hitlag, enter TDI state
