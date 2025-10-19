@@ -5043,15 +5043,31 @@ ComboTrainingMissedTechThink:
     branchl r12, HSD_Randi
     cmpwi r3, 0x0
     beq ComboTrainingMissedTech_GetupAttack
-    # No Getup Attack, Input Random Direction
-    li r3, 0
-    bl ComboTrainingDecideStickAngle
-    b ComboTrainingCheckToReset
+    cmpwi r3, 0x1
+    beq ComboTrainingMissedTech_GetupRollLeft
+    cmpwi r3, 0x2
+    beq ComboTrainingMissedTech_GetupRollRight
+    b ComboTrainingMissedTech_GetupNeutral
 
 # Input Getup Attack
 ComboTrainingMissedTech_GetupAttack:
     li r3, 0x100                                        # Press A To Getup Attack
     stw r3, 0x1A88(r29)
+    b ComboTrainingCheckToReset
+
+ComboTrainingMissedTech_GetupRollLeft:
+    li r3, -127
+    stb r3, 0x1A8C(r29)
+    b ComboTrainingCheckToReset
+
+ComboTrainingMissedTech_GetupRollRight:
+    li r3, 127
+    stb r3, 0x1A8C(r29)
+    b ComboTrainingCheckToReset
+
+ComboTrainingMissedTech_GetupNeutral:
+    li r3, 127
+    stb r3, 0x1A8D(r29)
     b ComboTrainingCheckToReset
 
 ########################
