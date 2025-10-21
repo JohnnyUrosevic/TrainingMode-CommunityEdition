@@ -268,7 +268,14 @@ void Reset(int side_idx) {
     hmn_data->phys.kb_vel.X = cos(angle) * vel * side;
     hmn_data->phys.kb_vel.Y = sin(angle) * vel;
     float kb_frames = (float)(int)((*stc_ftcommon)->x154 * mag);
-    *(float*)&hmn_data->state_var.state_var1 = kb_frames;
+
+    union IntToFloat {
+        int i;
+        float f;
+    } itf;
+    itf.f = kb_frames;
+    hmn_data->state_var.state_var1 = itf.i;
+
     hmn_data->flags.hitstun = 1;
     Fighter_EnableCollUpdate(hmn_data);
 
