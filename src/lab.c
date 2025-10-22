@@ -1308,6 +1308,76 @@ int Lab_CPUPerformAction(GOBJ *cpu, int action_id, GOBJ *hmn)
     Fighter_ZeroCPUInputs(cpu_data);
     if (action_list == 0) return true;
 
+    if (action_list[0].random) {
+        if (stc_rndm_counter_slot == -1) {
+            // get action list for counter type
+            u8 *actions;
+            int action_count;
+        
+            if (eventData->cpu_hitkind == HITKIND_SHIELD) {
+                actions = CPUCounterActionsShield;
+                action_count = countof(CPUCounterActionsShield);
+            } else if (eventData->cpu_groundstate == 0) {
+                actions = CPUCounterActionsGround;
+                action_count = countof(CPUCounterActionsGround);
+            } else {
+                actions = CPUCounterActionsAir;
+                action_count = countof(CPUCounterActionsAir);
+            }
+            
+            // choose random normal counter action in action list 
+            for (;;) {
+                action_id = actions[HSD_Randi(action_count)];
+                if (CPUACT_NORMAL_START <= action_id && action_id < CPUACT_NORMAL_END)
+                    break;
+            }
+
+            stc_rndm_counter_slot = action_id;
+        }
+        
+        action_id = stc_rndm_counter_slot;
+        action_list = Lab_CPUActions[action_id];
+    }
+
+    if (action_list[0].randomAdv) {
+        if (stc_rndm_counter_slot == -1) {
+            int hittype_menu_idx;
+            u8 *actions;
+            if (eventData->cpu_hitkind == HITKIND_SHIELD) {
+                actions = CPUCounterActionsShield;
+                hittype_menu_idx = OPTCTR_CTRSHIELD;
+            } else if (eventData->cpu_groundstate == 0) {
+                actions = CPUCounterActionsGround;
+                hittype_menu_idx = OPTCTR_CTRGRND;
+            } else {
+                actions = CPUCounterActionsAir;
+                hittype_menu_idx = OPTCTR_CTRAIR;
+            };
+            
+            // gather custom counter actions
+            u8 custom_action_ids[ADV_COUNTER_COUNT];
+            int custom_action_ids_count = 0;
+            for (int i = 0; i < ADV_COUNTER_COUNT; ++i) {
+                EventOption *custom_action_menu = LabOptions_AdvCounter[i];
+                
+                if (custom_action_menu[OPTCTR_LOGIC].val != CTRLOGIC_CUSTOM)
+                    continue;
+
+                u8 custom_id = actions[custom_action_menu[hittype_menu_idx].val];
+                custom_action_ids[custom_action_ids_count++] = custom_id;
+            }
+            
+            if (custom_action_ids_count == 0)
+                return true;
+    
+            action_id = custom_action_ids[HSD_Randi(custom_action_ids_count)];
+            stc_rndm_counter_slot = action_id;
+        }
+
+        action_id = stc_rndm_counter_slot;
+        action_list = Lab_CPUActions[action_id];
+    }
+    
     int recSlot = action_list[0].recSlot;
     if (recSlot != 0) {
         eventData->cpu_countering_no_interrupt = true;
@@ -1403,6 +1473,9 @@ int Lab_CPUPerformAction(GOBJ *cpu, int action_id, GOBJ *hmn)
 
         break;
     }
+    
+    if (action_done)
+        stc_rndm_counter_slot = -1;
 
     return action_done;
 }
@@ -6448,21 +6521,25 @@ CounterInfo GetCounterInfo(void) {
         adv_options = LabOptions_AdvCounter[hitidx];
         logic = adv_options[OPTCTR_LOGIC].val;
     }
-                        
+    
+    // get default action
+    info.counter_delay = LabOptions_CPU[OPTCPU_CTRFRAMES].val;
+    if (eventData->cpu_hitkind == HITKIND_SHIELD) {
+        int ctr = LabOptions_CPU[OPTCPU_CTRSHIELD].val;
+        info.action_id = CPUCounterActionsShield[ctr];
+    } else if (eventData->cpu_groundstate == 0) {
+        int ctr = LabOptions_CPU[OPTCPU_CTRGRND].val;
+        info.action_id = CPUCounterActionsGround[ctr];
+    } else {
+        int ctr = LabOptions_CPU[OPTCPU_CTRAIR].val;
+        info.action_id = CPUCounterActionsAir[ctr];
+    }
+    
     // find action and delay for this hit
-    if (logic == CTRLOGIC_DEFAULT) {
-        info.counter_delay = LabOptions_CPU[OPTCPU_CTRFRAMES].val;
-        
-        if (eventData->cpu_hitkind == HITKIND_SHIELD) {
-            int ctr = LabOptions_CPU[OPTCPU_CTRSHIELD].val;
-            info.action_id = CPUCounterActionsShield[ctr];
-        } else if (eventData->cpu_groundstate == 0) {
-            int ctr = LabOptions_CPU[OPTCPU_CTRGRND].val;
-            info.action_id = CPUCounterActionsGround[ctr];
-        } else {
-            int ctr = LabOptions_CPU[OPTCPU_CTRAIR].val;
-            info.action_id = CPUCounterActionsAir[ctr];
-        }
+    if (info.action_id == CPUACT_RANDOMADV) {
+        // ignore custom logic
+    } else if (logic == CTRLOGIC_DEFAULT) {
+        // do nothing, use default action
     } else if (logic == CTRLOGIC_DISABLED) {
         info.disable = 1;
     } else if (logic == CTRLOGIC_CUSTOM) {
