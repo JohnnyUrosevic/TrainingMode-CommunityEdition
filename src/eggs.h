@@ -4,16 +4,6 @@
 #include "../MexTK/mex.h"
 #include "events.h"
 
-static int egg_counter = 0;
-static int high_score = 0;
-static Vec3 coll_pos, last_coll_pos;
-static GOBJ *egg_gobj;
-static CmSubject *cam;
-static GOBJ *hud_score_gobj, *hud_best_gobj;
-static JOBJ *hud_score_jobj, *hud_best_jobj;
-static int canvas;
-static Text *hud_score_text, *hud_best_text;
-
 enum options_main
 {
     OPT_RETRY,
@@ -49,16 +39,12 @@ static EventOption Options_Main[OPT_COUNT] = {
         .kind = OPTKIND_FUNC,
         .name = "Retry",
         .desc = { "Retry this event. Pressing Z while paused also does this." },
-        .val = 0,
-        .disable = 0,
         .OnSelect = Retry
     },
     {
         .kind = OPTKIND_FUNC,
         .name = "Enable Free Practice",
         .desc = { "Start Free Practice mode." },
-        .val = 0,
-        .disable = 0,
         .OnSelect = StartFreePractice
     },
     {
@@ -94,7 +80,6 @@ static EventOption Options_Main[OPT_COUNT] = {
                  "Hurtboxes: yellow=hurt, purple=ungrabbable, blue=shield.",
                  "Hitboxes: (by priority) red, green, blue, purple."},
         .disable = 1,
-        .val = 0,
         .OnChange = ChangeHitDisplay,
     },
     {

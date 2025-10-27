@@ -1,6 +1,16 @@
 #include "../MexTK/mex.h"
 #include "eggs.h"
 
+static int egg_counter = 0;
+static int high_score = 0;
+static Vec3 coll_pos, last_coll_pos;
+static GOBJ *egg_gobj;
+static CmSubject *cam;
+static GOBJ *hud_score_gobj, *hud_best_gobj;
+static JOBJ *hud_score_jobj, *hud_best_jobj;
+static int canvas;
+static Text *hud_score_text, *hud_best_text;
+
 void Exit(GOBJ *menu) 
 {
     stc_match->state = 3;
@@ -221,11 +231,11 @@ void Event_Think(GOBJ *event)
         egg_jobj->scale.Z = EggOptions_Size[Options_Main[OPT_SCALE].val];
         egg_data->scale = EggOptions_Size[Options_Main[OPT_SCALE].val];
 
-        // show egg hurtbox on hit
+        // show egg hurtbox
         egg_data->show_hit = Options_Main[OPT_COLLISION].val;
         egg_data->show_model = !Options_Main[OPT_COLLISION].val;
 
-        // set this callbacks every frame or else gets overwritten
+        // set this callback on every frame or else it gets overwritten
         egg_data->it_func->OnTakeDamage = Egg_OnTakeDamage;
 
         // update camera position
@@ -260,10 +270,10 @@ void Event_Think(GOBJ *event)
     }
 
     // After 1 minute and not in free practice
-    if (stc_match->time_frames == 360 && stc_match->match.timer != MATCH_TIMER_COUNTUP)
+    if (stc_match->time_frames == 3600 && stc_match->match.timer != MATCH_TIMER_COUNTUP)
     {   
         int event_id = stc_memcard->EventBackup.event;
-        Events_SetEventAsPlayed(event_id); // I don't know why this doesn't work, but it really should
+        Events_SetEventAsPlayed(event_id);
         Match_SetEndGraphic(MATCHENDKIND_VSGAME);
 
         // high score logic
