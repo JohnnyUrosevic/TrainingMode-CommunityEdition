@@ -477,11 +477,26 @@ EventDesc EscapeSheik = {
     .matchData = 0,
 };
 
+static EventMatchData Eggs_MatchData = {
+    .timer = MATCH_TIMER_COUNTDOWN,
+    .matchType = MATCH_MATCHTYPE_TIME,
+    .hideGo = false,
+    .hideReady = false,
+    .isCreateHUD = true,
+    .timerRunOnPause = false,
+    .isCheckForZRetry = true,
+    .isShowScore = false,
+    .isRunStockLogic = false,
+    .isDisableHit = false,
+    .useKOCounter = false,
+    .timerSeconds = 60,
+};
+
 EventDesc Eggs = {
-    .eventName = "Eggs-ercise\n",
-    .eventDescription = "Break the eggs! Only strong hits will\nbreak them. DPad down = free practice.",
-    .eventFile = 0,
-    .jumpTableIndex = JUMP_EGGS,
+    .eventName = "Eggs-ercise \n",
+    .eventDescription = "Break the eggs! Only strong hits will\nbreak them. Start = more options.",
+    .eventFile = "eggs",
+    .jumpTableIndex = -1,
     .CSSType = SLCHRKIND_EVENT,
     .allowed_characters = { .hmn = -1, .cpu = -1 },
     .cpuKind = -1,
@@ -490,8 +505,9 @@ EventDesc Eggs = {
     .force_sopo = false,
     .scoreType = SCORETYPE_KO,
     .callbackPriority = 3,
-    .matchData = 0,
+    .matchData = &Eggs_MatchData,
 };
+
 EventDesc Multishine = {
     .eventName = "Shined Blind\n",
     .eventDescription = "How many shines can you\nperform in 10 seconds?",

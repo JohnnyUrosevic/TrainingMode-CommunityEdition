@@ -77,7 +77,6 @@ enum JumpTableIndex {
     JUMP_AMSAHTECH,
     JUMP_ATTACKONSHIELD,
     JUMP_COMBO,
-    JUMP_EGGS,
     JUMP_ESCAPESHIEK,
     JUMP_GRABMASH,
     JUMP_LEDGESTALL,
@@ -237,6 +236,10 @@ JOBJ *IDToBone(FighterData *fighter_data, JOBJ *id_as_ptr);
 void UpdateDevCamera(void);
 void EventUpdate(void);
 void Event_IncTimer(GOBJ *gobj);
+void Events_StoreEventScore(int event_id, int score);
+int Events_GetSavedScore(int event_id);
+void Event_Retry(void);
+void Events_SetEventAsPlayed(int event_id);
 void Test_Think(GOBJ *gobj);
 void Hazards_Disable(void);
 void TM_CreateWatermark(void);
