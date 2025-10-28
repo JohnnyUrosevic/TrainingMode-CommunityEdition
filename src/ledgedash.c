@@ -957,12 +957,16 @@ void Fighter_PlaceOnLedge(void)
     hmn_data->facing_direction = ledge_dir;
 
     // check starting position
-    enum menu_options start_pos = LdshOptions_Main[OPT_POS].val;
-    if (start_pos == OPTPOS_RANDOM) {
-        start_pos = (enum menu_options)(HSD_Randi(OPTPOS_RANDOM));
-    } 
+    int start_pos = LdshOptions_Main[OPT_POS].val;
+
+SWITCH_START_POS:
     switch (start_pos)
     {
+    case OPTPOS_RANDOM:
+    {
+        start_pos = HSD_Randi(OPTPOS_RANDOM);
+        goto SWITCH_START_POS;
+    }
     case OPTPOS_LEDGE:
     {
         // place player on this ledge

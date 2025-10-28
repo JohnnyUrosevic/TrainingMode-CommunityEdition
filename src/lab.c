@@ -6517,6 +6517,11 @@ CounterInfo GetCounterInfo(void) {
     int logic = CTRLOGIC_DEFAULT;
     
     int hitidx = eventData->cpu_hitnum - 1;
+    if (hitidx < 0) {
+        hitidx = 0;
+        OSReport("cpu_hitnum not incremented!");
+    }
+    
     if (hitidx < ADV_COUNTER_COUNT) {
         adv_options = LabOptions_AdvCounter[hitidx];
         logic = adv_options[OPTCTR_LOGIC].val;
