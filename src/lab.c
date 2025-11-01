@@ -5832,6 +5832,12 @@ void Event_Init(GOBJ *gobj)
     LabOptions_CPU[OPTCPU_RECOVERY].menu = recovery_menu;
     LabOptions_CPU[OPTCPU_RECOVERY].disable = recovery_menu == 0;
     
+    // enable all recovery options
+    if (recovery_menu) {
+        for (int i = 0; i < recovery_menu->option_num; ++i)
+            recovery_menu->options[i].val = 1;
+    }
+    
     // advanced counter options
     for (int i = 0; i < ADV_COUNTER_COUNT; ++i) {
         memcpy(

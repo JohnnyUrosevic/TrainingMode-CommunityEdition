@@ -565,6 +565,10 @@ static void Think_Spacies(GOBJ *cpu, u32 opt_flags) {
         illusion_chance = SP_ILLUSION_CHANCE_TO_LEDGE;
     }
     
+    bool is_past_ledge = fabs(target_ledgegrab.X) > fabs(pos.X);
+    bool can_fall_to_ledge = is_past_ledge
+        | SimulatePhys_CanReachPoint(cpu_data, target_ledgegrab);
+    
     bool can_upb = OptEnabled(OPT_SPACIES_FF_LOW)
         | OptEnabled(OPT_SPACIES_FF_MID)
         | OptEnabled(OPT_SPACIES_FF_HIGH);
@@ -625,6 +629,7 @@ static void Think_Spacies(GOBJ *cpu, u32 opt_flags) {
         } else if (
             vel.Y <= 1.5f
             && can_upb
+            && !can_fall_to_ledge
             && (
                 // force upb if at end of range
                 (pos.Y < 0.f && distance_to_ledgegrab > upb_distance)
@@ -632,10 +637,7 @@ static void Think_Spacies(GOBJ *cpu, u32 opt_flags) {
                 // otherwise, random chance to upb
                 || (
                     distance_to_ledgegrab < upb_distance
-                    && (
-                        pos.X < ledge_positions[0].X
-                        || pos.X > ledge_positions[1].X
-                    ) && HSD_Randi(SP_UPB_CHANCE) == 0
+                    && HSD_Randi(SP_UPB_CHANCE) == 0
                 )
             )
         ) {
