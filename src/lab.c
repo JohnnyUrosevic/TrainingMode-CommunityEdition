@@ -564,14 +564,11 @@ void Lab_ChangeInfoPresetCPU(GOBJ *menu_gobj, int preset_id)
     Lab_ChangeInfoPreset(LabOptions_InfoDisplayCPU, preset_id);
 }
 
-void Lab_ChangeHUD(GOBJ *menu_gobj, int value)
+void Lab_ChangeHUD(GOBJ *menu_gobj, int show_hud)
 {
-    // toggle HUD
-    u8 *hideHUD = (u8 *)(R13 + -0x4948);
-    if (value == 0)
-        *hideHUD = 1;
-    else
-        *hideHUD = 0;
+    bool *hide_hud_ptr = (bool *)(R13 + -0x4948);
+    *hide_hud_ptr = !show_hud;
+    event_vars->watermark->hidden = !show_hud;
 }
 
 void Lab_Exit(GOBJ *menu)

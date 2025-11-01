@@ -213,6 +213,7 @@ typedef struct EventVars
     evFunction evFunction;      // event specific functions
     HSD_Archive *event_archive; // event archive header
     DevText *db_console_text;
+    Text *watermark;
     GOBJ *hudcam_gobj;
     void (*HUD_DrawRects)(Rect *rects, GXColor *colors, int count);
     void (*HUD_DrawText)(const char *text, Rect *pos, float size);

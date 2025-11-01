@@ -1287,7 +1287,7 @@ void TM_CreateWatermark(void)
 {
     // create text canvas
     int canvas = Text_CreateCanvas(10, 0, 9, 13, 0, 14, 0, 19);
-
+    
     // create text
     Text *text = Text_CreateText(10, canvas);
     // enable align and kerning
@@ -1314,6 +1314,8 @@ void TM_CreateWatermark(void)
     Text_SetColor(text, shadow3, &shadow_color);
 
     Text_AddSubtext(text, 0, 0, TM_VersShort);
+
+    stc_event_vars.watermark = text;
 }
 void Hazards_Disable(void)
 {
