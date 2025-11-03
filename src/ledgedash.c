@@ -292,7 +292,7 @@ void Ledgedash_HUDInit(LedgedashData *event_data)
 
     // init text
     Text **text_arr = &event_data->hud.text_angle;
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
     {
         // Create text object
         Text *hud_text = Text_CreateText(2, canvas);
@@ -321,11 +321,6 @@ void Ledgedash_HUDInit(LedgedashData *event_data)
         // dummy text
         Text_AddSubtext(hud_text, 0, 0, "-");
     }
-
-    // reset all bar colors
-    JOBJ *timingbar_jobj;
-    JOBJ_GetChild(hud_jobj, &timingbar_jobj, LCLJOBJ_BAR, -1); // get timing bar jobj
-    JOBJ_SetFlagsAll(timingbar_jobj, JOBJ_HIDDEN);
 }
 void Ledgedash_HUDThink(LedgedashData *event_data, FighterData *hmn_data)
 {
@@ -445,6 +440,7 @@ void Ledgedash_HUDThink(LedgedashData *event_data, FighterData *hmn_data)
         Text *text_galint = event_data->hud.text_galint;
         if (hmn_data->hurt.intang_frames.ledge > 0)
         {
+            event_data->hud.successful_count++;
             event_data->was_successful = true;
             matanim = event_data->assets->hudmatanim[0];
             Text_SetText(text_galint, 0, "%df", hmn_data->hurt.intang_frames.ledge);
@@ -461,6 +457,11 @@ void Ledgedash_HUDThink(LedgedashData *event_data, FighterData *hmn_data)
             matanim = event_data->assets->hudmatanim[1];
             Text_SetText(text_galint, 0, "-");
         }
+        event_data->hud.total_count++;
+        int success_count = event_data->hud.successful_count;
+        int total_count = event_data->hud.total_count;
+        float success_percent = (float)success_count/total_count;
+        Text_SetText(event_data->hud.text_count, 0, "%d/%d (%.1f%%)", success_count, total_count, success_percent*100);
 
         // init hitbox num
         LdshHitlogData *hitlog_data = event_data->hitlog_gobj->userdata;
@@ -533,6 +534,13 @@ void Ledgedash_ResetThink(LedgedashData *event_data, GOBJ *hmn)
             event_data->reset_timer = LdshOptions_ResetDelayFailure[reset_idx];
             event_data->was_successful = false;
             SFX_PlayCommon(3);
+
+            // update counter hud
+            event_data->hud.total_count++;
+            int success_count = event_data->hud.successful_count;
+            int total_count = event_data->hud.total_count;
+            float success_percent = (float)success_count/total_count;
+            Text_SetText(event_data->hud.text_count, 0, "%d/%d (%.1f%%)", success_count, total_count, success_percent*100);
         }
     }
 }
