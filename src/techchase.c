@@ -30,7 +30,7 @@ enum {
 static const EventOption Option_MoveCPU = {
     .kind = OPTKIND_FUNC,
     .name = "Move CPU",
-    .desc = {"Manually set the CPU's position."},
+    .desc = {"Manually set the CPU's position.", "Press A to change direction."},
     .OnSelect = StartMoveCPU,
 };
 
@@ -44,7 +44,7 @@ static const EventOption Option_FinishMoveCPU = {
 static const EventOption Option_MoveHMN = {
     .kind = OPTKIND_FUNC,
     .name = "Move HMN",
-    .desc = {"Manually set the HMN's position."},
+    .desc = {"Manually set the HMN's position.", "Press A to change direction."},
     .OnSelect = StartMoveHMN,
 };
 
@@ -58,10 +58,14 @@ static const EventOption Option_FinishMoveHMN = {
 static float GameSpeeds[] = {1.f, 5.f/6.f, 2.f/3.f, 1.f/2.f, 1.f/4.f};
 static const char *Options_GameSpeedText[] = {"1", "5/6", "2/3", "1/2", "1/4"};
 
+static const char *Options_Reset[] = {"Fast", "Slow", "None"};
+static int ResetDurations[] = { 30, 60, 2147483647 };
+
 enum {
     OPT_CHANCE_MENU,
     OPT_REACTION_OSD,
     OPT_TIMING_OSD,
+    OPT_RESET,
     OPT_INVIS,
     OPT_SPEED,
     OPT_MOVE_CPU,
@@ -88,6 +92,13 @@ static EventOption Options_Main[] = {
         .name = "Timing OSD",
         .desc = {"Check how early or late you were."},
         .val = true,
+    },
+    {
+        .kind = OPTKIND_STRING,
+        .name = "Reset",
+        .desc = {"Change how quickly the event resets."},
+        .values = Options_Reset,
+        .value_num = countof(Options_Reset),
     },
     {
         .kind = OPTKIND_STRING,
@@ -279,6 +290,8 @@ static int null_pad_index;
 
 static Vec3 cpu_pos = { 5, 27, 0 };
 static Vec3 hmn_pos = { -5, 0, 0 };
+static float cpu_facing_direction = 1;
+static float hmn_facing_direction = 1;
 
 static void Reset(void) {
     event_vars->Savestate_Load_v1(event_vars->savestate, Savestate_Silent);
@@ -288,8 +301,8 @@ static void Reset(void) {
     FighterData *hmn_data = hmn->userdata;
     FighterData *cpu_data = cpu->userdata;
 
-    hmn_data->facing_direction = 1;
-    cpu_data->facing_direction = 1;
+    hmn_data->facing_direction = hmn_facing_direction;
+    cpu_data->facing_direction = cpu_facing_direction;
 
     hmn_data->phys.pos = hmn_pos;
     cpu_data->phys.pos = cpu_pos;
@@ -363,6 +376,26 @@ void Event_Update(GOBJ *menu) {
 
 }
 
+void MoveFighter(GOBJ *ft, Vec3 *pos, float *facing_direction) {
+    HSD_Pad *pad = PadGetMaster(hmn_pad_index);
+    FighterData *ft_data = ft->userdata;
+    
+    if (pad->down & HSD_BUTTON_A)
+        *facing_direction = -*facing_direction;
+    ft_data->facing_direction = *facing_direction;
+    ft_data->facing_direction_prev = *facing_direction;
+        
+    float x = pad->fstickX;
+    float y = pad->fstickY;
+    float deadzone = 0.2750f;
+    if (fabs(x) < deadzone) x = 0.f;
+    if (fabs(y) < deadzone) y = 0.f;
+    pos->X += x * 1.5f;
+    pos->Y += y * 1.5f;
+    ft_data->phys.pos = *pos;
+    UpdatePosition(ft);
+}
+
 void Event_Think(GOBJ *menu) {
     if (event_vars->game_timer == 1) {
         event_vars->Savestate_Save_v1(event_vars->savestate, Savestate_Silent);
@@ -377,33 +410,22 @@ void Event_Think(GOBJ *menu) {
     
     // move CPU
     if (Options_Main[OPT_MOVE_CPU].name == Option_FinishMoveCPU.name) {
-        HSD_Pad *pad = PadGetMaster(hmn_pad_index);
-        cpu_pos.X += pad->fstickX * 1.5f;
-        cpu_pos.Y += pad->fstickY * 1.5f;
-        cpu_data->phys.pos = cpu_pos;
-        UpdatePosition(cpu);
+        MoveFighter(cpu, &cpu_pos, &cpu_facing_direction);
         Fighter_EnterDamageFall(cpu);
-    
         return;
     }
     
     // move HMN
     else if (Options_Main[OPT_MOVE_HMN].name == Option_FinishMoveHMN.name) {
-        hmn_pos.X += pad->fstickX * 1.5f;
-        hmn_pos.Y += pad->fstickY * 1.5f;
-        hmn_data->phys.pos = hmn_pos;
-        UpdatePosition(hmn);
-        
+        MoveFighter(hmn, &hmn_pos, &hmn_facing_direction);
+
         Vec3 grounded_hmn_pos;
         int ground_index;
         if (FindGroundNearPlayer(hmn, &grounded_hmn_pos, &ground_index)) {
             hmn_data->phys.pos = grounded_hmn_pos;
             hmn_data->coll_data.ground_index = ground_index;
-            EnvironmentCollision_WaitLanding(hmn);
-            Fighter_SetGrounded(hmn_data);
-        } else {
-            Fighter_EnterFall(hmn);
         }
+        Fighter_EnterFall(hmn);
     
         return;
     }
@@ -525,7 +547,7 @@ void Event_Think(GOBJ *menu) {
         // fail if finished tech 
         if (state_id == ASID_WAIT) {
             // SFX_Play(0xAF);
-            reset_timer = 30;
+            reset_timer = ResetDurations[Options_Main[OPT_RESET].val];
         }
         // succeed if grabbed or hit 
         else if (
@@ -556,7 +578,7 @@ void Event_Think(GOBJ *menu) {
             }
         
             SFX_Play(0xAD);
-            reset_timer = 30;
+            reset_timer = ResetDurations[Options_Main[OPT_RESET].val];
         }
     }
 
