@@ -5784,7 +5784,7 @@ static void Stage_SetFODPlatformHeight(int side) {
     data->mode = 1;
     data->timer = 0xFF;
 
-    plat_jobj->trans.Y = height * 1.21875;
+    plat_jobj->trans.Y = height;
     JOBJ_SetMtxDirtySub(plat_jobj);
 }
 
