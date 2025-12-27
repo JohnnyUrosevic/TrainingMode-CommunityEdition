@@ -1050,6 +1050,9 @@ SWITCH_START_POS:
     cam->cam_pos.Y = ledge_pos.Y + 15;
 
     Fighter_UpdateCamera(hmn);
+    
+    // Prevent double reset caused by normal getup -> ledge jump combo with an instant reset delay.
+    hmn_data->input.timer_lstick_tilt_y = 10;
 
     // remove all particles
     for (int i = 0; i < PTCL_LINKMAX; i++)

@@ -307,6 +307,7 @@
 80075650:Fighter_IndexFtPartsDObjs
 80068354:Fighter_InitData
 800867E8:Fighter_InitInputs
+80068854:Fighter_InitInputTimers
 8007487C:Fighter_InitFtPartsModel
 80074148:Fighter_InitPObj
 80074170:Fighter_InitPObj2

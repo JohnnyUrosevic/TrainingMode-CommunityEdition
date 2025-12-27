@@ -3362,6 +3362,7 @@ void Fighter_HitboxDisableAll(GOBJ *fighter);
 int Fighter_CountPlayers();
 void Fighter_InitData(GOBJ *f);
 void Fighter_InitInputs(GOBJ *fighter);
+void Fighter_InitInputTimers(GOBJ *fighter);
 void Fighter_BreakGrabUnk(GOBJ *victim);
 void Fighter_BreakGrab(GOBJ *fighter, GOBJ *victim);
 void Fighter_InitGrab(FighterData *fighter, int is_enable, void *on_grabber, void *on_item, void *on_victim);
