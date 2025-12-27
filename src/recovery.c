@@ -67,6 +67,17 @@ static void GetLedgePositions(Vec2 coords_out[2]) {
     coords_out[1] = (Vec2) { pos.X, pos.Y };
 }
 
+static void DIIn(FighterData *cpu_data) {
+    bool right = cpu_data->phys.pos.X > 0.f;
+
+    cpu_data->cpu.lstickX = right ? -90 : 90;
+    cpu_data->cpu.lstickY = 90;
+
+    // Spoof last input as current input to prevent SDI
+    cpu_data->input.lstick.X = right ? -0.7f : 0.7f;
+    cpu_data->input.lstick.Y = 0.7f;
+}
+
 #define OptEnabled(opt) (((opt_flags) & (1u << (opt))) != 0)
 
 #define CMN_FALL_MIN_DISTANCE 20.0f
@@ -575,12 +586,10 @@ static void Think_Spacies(GOBJ *cpu, u32 opt_flags) {
     
     float upb_distance = cpu_data->kind == FTKIND_FOX ?
         SP_FIREFOX_DISTANCE : SP_FIREBIRD_DISTANCE;
-        
+    
     // HITSTUN
     if (cpu_data->flags.hitlag) {
-        // DI inwards
-        cpu_data->cpu.lstickX = 90 * dir;
-        cpu_data->cpu.lstickY = 90;
+        DIIn(cpu_data);
         
     // ACTIONABLE
     } else if (IsAirActionable(cpu)) {
@@ -808,13 +817,10 @@ static void Think_Sheik(GOBJ *cpu, u32 opt_flags) {
         cpu_data->cpu.lstickY = -80;
         cpu_data->cpu.cstickY = -127;
         amsah_teching = true;
-    
-        
+
     // HITSTUN
     } else if (cpu_data->flags.hitlag && !amsah_teching) {
-        // DI inwards
-        cpu_data->cpu.lstickX = 90 * dir;
-        cpu_data->cpu.lstickY = 90;
+        DIIn(cpu_data);
     } else if (cpu_data->flags.hitstun && amsah_teching) {
         cpu_data->cpu.lstickX = pos.X < hmn_data->phys.pos.X ? -80 : 80;
         cpu_data->cpu.lstickY = -80;
@@ -1036,11 +1042,10 @@ static void Think_Falcon(GOBJ *cpu, u32 opt_flags) {
                 || (vel.Y <= 1.f && -vec_to_ledgegrab.Y / 3.f > fabs(vec_to_ledgegrab.X))
             )
         );
-    
+        
+    // HITSTUN
     if (cpu_data->flags.hitlag) {
-        // DI inwards
-        cpu_data->cpu.lstickX = 90 * dir;
-        cpu_data->cpu.lstickY = 90;
+        DIIn(cpu_data);
         
     // STOP DRIFT BACK
     } else if (!in_drift_back_zone && drift_back_timer) {
@@ -1203,9 +1208,7 @@ static void Think_Marth(GOBJ *cpu, u32 opt_flags) {
         && (stc_stage->kind != GRKIND_BATTLE || vec_to_ledgegrab.X * dir > 3.f);
 
     if (cpu_data->flags.hitlag) {
-        // DI inwards
-        cpu_data->cpu.lstickX = 90 * dir;
-        cpu_data->cpu.lstickY = 90;
+        DIIn(cpu_data);
     } else if (IsAirActionable(cpu)) {
         // SIDE B FAR
         if (

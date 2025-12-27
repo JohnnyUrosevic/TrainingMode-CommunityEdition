@@ -4106,6 +4106,8 @@ void Record_ChangeHMNSlot(GOBJ *menu_gobj, int value)
         int prev_slot = LabOptions_Record[OPTREC_HMNSLOT].val_prev;
         if (prev_slot != 0)
             memcpy(rec_data.hmn_inputs[prev_slot - 1], rec_data.hmn_rerecord_inputs, sizeof(RecInputData));
+
+        memcpy(rec_data.hmn_rerecord_inputs, rec_data.hmn_inputs[Record_GetSlot(0)], sizeof(RecInputData));
     }
 
     // reload save
@@ -4128,6 +4130,8 @@ void Record_ChangeCPUSlot(GOBJ *menu_gobj, int value)
         int prev_slot = LabOptions_Record[OPTREC_CPUSLOT].val_prev;
         if (prev_slot != 0)
             memcpy(rec_data.cpu_inputs[prev_slot - 1], rec_data.cpu_rerecord_inputs, sizeof(RecInputData));
+
+        memcpy(rec_data.cpu_rerecord_inputs, rec_data.cpu_inputs[Record_GetSlot(1)], sizeof(RecInputData));
     }
 
     // reload save
