@@ -3954,7 +3954,7 @@ bool Record_HMN_IsRandomSlot(void)
 }
 bool Record_CPU_IsRandomSlot(void)
 {
-    return LabOptions_Record[OPTREC_HMNSLOT].val == 0;
+    return LabOptions_Record[OPTREC_CPUSLOT].val == 0;
 }
 
 void Record_InitState(GOBJ *menu_gobj)
