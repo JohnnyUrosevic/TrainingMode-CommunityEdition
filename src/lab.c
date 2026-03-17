@@ -3483,8 +3483,12 @@ void Record_CopySlot(GOBJ *menu_gobj) {
     }
 
     chances[target_slot].disable = chances[copy_slot].disable;
-    ReboundSlotChances(chances, target_slot);
+    chances[target_slot].val = chances[copy_slot].val;
     memcpy(data[target_slot], data[copy_slot], sizeof(RecInputData));
+
+    s16 *values[REC_SLOTS];
+    int value_count = EnabledSlotChances(chances, values);
+    DistributeChances(values, value_count);
 }
 
 void Record_DeleteSlot(GOBJ *menu_gobj) {
