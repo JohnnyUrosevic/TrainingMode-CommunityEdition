@@ -1376,14 +1376,14 @@ int Lab_CPUPerformAction(GOBJ *cpu, int action_id, GOBJ *hmn)
             int action_count;
         
             if (eventData->cpu_hitkind == HITKIND_SHIELD) {
-                actions = CPUCounterActionsShield;
-                action_count = countof(CPUCounterActionsShield);
+                actions = CPUCounterActionsShieldRandom;
+                action_count = countof(CPUCounterActionsShieldRandom);
             } else if (eventData->cpu_groundstate == 0) {
-                actions = CPUCounterActionsGround;
-                action_count = countof(CPUCounterActionsGround);
+                actions = CPUCounterActionsGroundRandom;
+                action_count = countof(CPUCounterActionsGroundRandom);
             } else {
-                actions = CPUCounterActionsAir;
-                action_count = countof(CPUCounterActionsAir);
+                actions = CPUCounterActionsAirRandom;
+                action_count = countof(CPUCounterActionsAirRandom);
             }
             
             // choose random normal counter action in action list 

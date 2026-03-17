@@ -908,6 +908,10 @@ static const char *LabValues_CounterGround[] = {"None", "Spotdodge", "Shield", "
 static const char *LabValues_CounterAir[] = {"None", "Airdodge", "Jump Away", "Jump Towards", "Jump Neutral", "Up B", "Side B Toward", "Side B Away", "Down B", "Neutral B", "Neutral Air", "Forward Air", "Down Air", "Back Air", "Up Air", "Tumble Fastfall", "Wiggle Fastfall", SLOT_NAMES, "Random Advanced", "Random"};
 static const char *LabValues_CounterShield[] = {"None", "Grab", "Short Hop", "Full Hop", "Spotdodge", "Roll Away", "Roll Towards", "Roll Random", "Up Smash", "Up B", "Down B", "Neutral Air", "Forward Air", "Down Air", "Back Air", "Up Air", "Wavedash Away", "Wavedash Towards", "Wavedash Down", SLOT_NAMES, "Random Advanced", "Random"};
 
+static u8 CPUCounterActionsGroundRandom[] = {CPUACT_SPOTDODGE, CPUACT_RUNUPGRAB, CPUACT_FSMASH, CPUACT_ROLLRDM, CPUACT_NAIR, CPUACT_FAIR, CPUACT_JAB, CPUACT_FTILT, CPUACT_DTILT, CPUACT_DASHATTACK, CPUACT_DASH_AWAY, CPUACT_DASH_TOWARDS};
+static u8 CPUCounterActionsAirRandom[] = {CPUACT_AIRDODGE, CPUACT_JUMPNEUTRAL, CPUACT_NAIR, CPUACT_FAIR, CPUACT_DAIR, CPUACT_FFWIGGLE};
+static u8 CPUCounterActionsShieldRandom[] = {CPUACT_GRAB, CPUACT_FULLHOP, CPUACT_SPOTDODGE, CPUACT_ROLLRDM, CPUACT_USMASHOOS, CPUACT_NAIR, CPUACT_FAIR, CPUACT_DAIR, CPUACT_WAVEDASH_AWAY};
+
 // MENUS ###################################################
 
 // MAIN MENU --------------------------------------------------------------
