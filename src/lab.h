@@ -149,6 +149,56 @@ static CPUAction Lab_CPUActionGrab[] = {
     },
     ActionEnd
 };
+static CPUAction Lab_CPUActionRunUpGrab[] = {
+    {
+        .state     = ASID_ACTIONABLEGROUND,
+        .stickX    = 127,
+        .stickDir  = STCKDIR_TOWARD,
+    },
+    {
+        .state     = ASID_TURN,
+        .stickX    = 127,
+        .stickDir  = STCKDIR_TOWARD,
+    },
+    {
+        .state     = ASID_DASH,
+        .stickX    = 127,
+        .stickDir  = STCKDIR_TOWARD,
+        .input     = PAD_BUTTON_Y,
+    },
+    {
+        .state     = ASID_KNEEBEND,
+        .input     = PAD_TRIGGER_Z,
+        .isLast    = 1,
+    },
+    ActionEnd
+};
+static CPUAction Lab_CPUActionDashAttack[] = {
+    {
+        .state     = ASID_ACTIONABLEGROUND,
+        .stickX    = 127,
+        .stickDir  = STCKDIR_TOWARD,
+    },
+    {
+        .state     = ASID_TURN,
+        .stickX    = 127,
+        .stickDir  = STCKDIR_TOWARD,
+    },
+    {
+        .state     = ASID_DASH,
+        .stickX    = 127,
+        .stickDir  = STCKDIR_TOWARD,
+        .frameLow  = 5,
+        .input     = PAD_BUTTON_A,
+        .isLast    = 1,
+    },
+    {
+        .state     = ASID_DASH,
+        .stickX    = 127,
+        .stickDir  = STCKDIR_TOWARD,
+    },
+    ActionEnd
+};
 static CPUAction Lab_CPUActionUpB[] = {
     {
         .state     = ASID_GUARD,
@@ -736,6 +786,7 @@ static CPUAction *Lab_CPUActions[] = {
     0,
     Lab_CPUActionShield,
     Lab_CPUActionGrab,
+    Lab_CPUActionRunUpGrab,
     Lab_CPUActionUpB,
     Lab_CPUActionSideBToward,
     Lab_CPUActionSideBAway,
@@ -762,6 +813,7 @@ static CPUAction *Lab_CPUActions[] = {
     Lab_CPUActionFTilt,
     Lab_CPUActionUTilt,
     Lab_CPUActionDTilt,
+    Lab_CPUActionDashAttack,
     Lab_CPUActionUSmash,
     Lab_CPUActionDSmash,
     Lab_CPUActionFSmash,
@@ -790,6 +842,7 @@ enum CPU_ACTIONS
     
     CPUACT_SHIELD = CPUACT_NORMAL_START,
     CPUACT_GRAB,
+    CPUACT_RUNUPGRAB,
     CPUACT_UPB,
     CPUACT_SIDEBTOWARD,
     CPUACT_SIDEBAWAY,
@@ -816,6 +869,7 @@ enum CPU_ACTIONS
     CPUACT_FTILT,
     CPUACT_UTILT,
     CPUACT_DTILT,
+    CPUACT_DASHATTACK,
     CPUACT_USMASH,
     CPUACT_DSMASH,
     CPUACT_FSMASH,
@@ -844,13 +898,13 @@ enum CPU_ACTIONS
 #define SLOT_ACTIONS CPUACT_SLOT1, CPUACT_SLOT2, CPUACT_SLOT3, CPUACT_SLOT4, CPUACT_SLOT5, CPUACT_SLOT6, CPUACT_SLOT_RANDOM
 #define SLOT_NAMES "Play Slot 1", "Play Slot 2", "Play Slot 3", "Play Slot 4", "Play Slot 5", "Play Slot 6", "Play Random Slot"
 
-static u8 CPUCounterActionsGround[] = {CPUACT_NONE, CPUACT_SPOTDODGE, CPUACT_SHIELD, CPUACT_GRAB, CPUACT_UPB, CPUACT_SIDEBTOWARD, CPUACT_SIDEBAWAY, CPUACT_DOWNB, CPUACT_NEUTRALB, CPUACT_USMASH, CPUACT_DSMASH, CPUACT_FSMASH, CPUACT_ROLLAWAY, CPUACT_ROLLTOWARDS, CPUACT_ROLLRDM, CPUACT_NAIR, CPUACT_FAIR, CPUACT_DAIR, CPUACT_BAIR, CPUACT_UAIR, CPUACT_JAB, CPUACT_FTILT, CPUACT_UTILT, CPUACT_DTILT, CPUACT_SHORTHOP, CPUACT_FULLHOP, CPUACT_WAVEDASH_AWAY, CPUACT_WAVEDASH_TOWARDS, CPUACT_WAVEDASH_DOWN, CPUACT_DASH_AWAY, CPUACT_DASH_TOWARDS, SLOT_ACTIONS, CPUACT_RANDOMADV, CPUACT_RANDOM};
+static u8 CPUCounterActionsGround[] = {CPUACT_NONE, CPUACT_SPOTDODGE, CPUACT_SHIELD, CPUACT_RUNUPGRAB, CPUACT_UPB, CPUACT_SIDEBTOWARD, CPUACT_SIDEBAWAY, CPUACT_DOWNB, CPUACT_NEUTRALB, CPUACT_USMASH, CPUACT_DSMASH, CPUACT_FSMASH, CPUACT_ROLLAWAY, CPUACT_ROLLTOWARDS, CPUACT_ROLLRDM, CPUACT_NAIR, CPUACT_FAIR, CPUACT_DAIR, CPUACT_BAIR, CPUACT_UAIR, CPUACT_JAB, CPUACT_FTILT, CPUACT_UTILT, CPUACT_DTILT, CPUACT_DASHATTACK, CPUACT_SHORTHOP, CPUACT_FULLHOP, CPUACT_WAVEDASH_AWAY, CPUACT_WAVEDASH_TOWARDS, CPUACT_WAVEDASH_DOWN, CPUACT_DASH_AWAY, CPUACT_DASH_TOWARDS, SLOT_ACTIONS, CPUACT_RANDOMADV, CPUACT_RANDOM};
 
 static u8 CPUCounterActionsAir[] = {CPUACT_NONE, CPUACT_AIRDODGE, CPUACT_JUMPAWAY, CPUACT_JUMPTOWARDS, CPUACT_JUMPNEUTRAL, CPUACT_UPB, CPUACT_SIDEBTOWARD, CPUACT_SIDEBAWAY, CPUACT_DOWNB, CPUACT_NEUTRALB, CPUACT_NAIR, CPUACT_FAIR, CPUACT_DAIR, CPUACT_BAIR, CPUACT_UAIR, CPUACT_FFTUMBLE, CPUACT_FFWIGGLE, SLOT_ACTIONS, CPUACT_RANDOMADV, CPUACT_RANDOM};
 
 static u8 CPUCounterActionsShield[] = {CPUACT_NONE, CPUACT_GRAB, CPUACT_SHORTHOP, CPUACT_FULLHOP, CPUACT_SPOTDODGE, CPUACT_ROLLAWAY, CPUACT_ROLLTOWARDS, CPUACT_ROLLRDM, CPUACT_USMASHOOS, CPUACT_UPB, CPUACT_DOWNB, CPUACT_NAIR, CPUACT_FAIR, CPUACT_DAIR, CPUACT_BAIR, CPUACT_UAIR, CPUACT_WAVEDASH_AWAY, CPUACT_WAVEDASH_TOWARDS, CPUACT_WAVEDASH_DOWN, SLOT_ACTIONS, CPUACT_RANDOMADV, CPUACT_RANDOM};
 
-static const char *LabValues_CounterGround[] = {"None", "Spotdodge", "Shield", "Grab", "Up B", "Side B Toward", "Side B Away", "Down B", "Neutral B", "Up Smash", "Down Smash", "Forward Smash", "Roll Away", "Roll Towards", "Roll Random", "Neutral Air", "Forward Air", "Down Air", "Back Air", "Up Air", "Jab", "Forward Tilt", "Up Tilt", "Down Tilt", "Short Hop", "Full Hop", "Wavedash Away", "Wavedash Towards", "Wavedash Down", "Dash Back", "Dash Through", SLOT_NAMES, "Random Advanced", "Random"};
+static const char *LabValues_CounterGround[] = {"None", "Spotdodge", "Shield", "Grab", "Up B", "Side B Toward", "Side B Away", "Down B", "Neutral B", "Up Smash", "Down Smash", "Forward Smash", "Roll Away", "Roll Towards", "Roll Random", "Neutral Air", "Forward Air", "Down Air", "Back Air", "Up Air", "Jab", "Forward Tilt", "Up Tilt", "Down Tilt", "Dash Attack", "Short Hop", "Full Hop", "Wavedash Away", "Wavedash Towards", "Wavedash Down", "Dash Back", "Dash Through", SLOT_NAMES, "Random Advanced", "Random"};
 static const char *LabValues_CounterAir[] = {"None", "Airdodge", "Jump Away", "Jump Towards", "Jump Neutral", "Up B", "Side B Toward", "Side B Away", "Down B", "Neutral B", "Neutral Air", "Forward Air", "Down Air", "Back Air", "Up Air", "Tumble Fastfall", "Wiggle Fastfall", SLOT_NAMES, "Random Advanced", "Random"};
 static const char *LabValues_CounterShield[] = {"None", "Grab", "Short Hop", "Full Hop", "Spotdodge", "Roll Away", "Roll Towards", "Roll Random", "Up Smash", "Up B", "Down B", "Neutral Air", "Forward Air", "Down Air", "Back Air", "Up Air", "Wavedash Away", "Wavedash Towards", "Wavedash Down", SLOT_NAMES, "Random Advanced", "Random"};
 
