@@ -1224,7 +1224,7 @@ void Tips_Toggle(GOBJ *menu_gobj, int value)
 void Tips_Think(LedgedashData *event_data, FighterData *hmn_data)
 {
     // skip if tips turned off
-    if (LdshOptions_Main[OPT_TIPS].val == 1)
+    if (!LdshOptions_Main[OPT_TIPS].val)
         return;
 
     // check for early fall input in cliffcatch
