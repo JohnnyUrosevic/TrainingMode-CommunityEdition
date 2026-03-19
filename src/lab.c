@@ -139,10 +139,10 @@ bool ActionLog_IsShowing(void) {
     return draw_action_log;
 }
 
-void Lab_ChangeActionBehaviour(GOBJ *menu_gobj, int value) {
+void Lab_ChangeActionNumber(GOBJ *menu_gobj, int value) {
     for (int i = 0; i < ACTION_LOG_MAX; ++i)
-        LabOptions_ActionLog[i][OPTACTIONLOG_ACTION].val = LabOptions_ActionLog[i][OPTACTIONLOG_ACTION].val_prev;
-    LabMenu_ActionLog.options = LabOptions_ActionLog[value];
+        LabOptions_ActionLog[i][OPTACTIONLOG_NUMBER].val = LabOptions_ActionLog[i][OPTACTIONLOG_NUMBER].val_prev;
+    LabMenu_ActionLog.options = LabOptions_ActionLog[value - 1];
 }
 
 void Lab_RemoveActionLogState(GOBJ *menu_gobj) {
@@ -5827,6 +5827,7 @@ void Event_PostThink(GOBJ *gobj)
     UpdateOverlays(hmn, LabOptions_OverlaysHMN);
     UpdateOverlays(cpu, LabOptions_OverlaysCPU);
 
+    ActionLog_Think();
     Stage_Think();
 }
 
@@ -5868,6 +5869,8 @@ void Event_Init(GOBJ *gobj)
             LabOptions_ActionLog_Default,
             sizeof(LabOptions_ActionLog_Default)
         );
+        LabOptions_ActionLog[i][OPTACTIONLOG_NUMBER].val = i + 1;
+        LabOptions_ActionLog[i][OPTACTIONLOG_NUMBER].val_prev = i + 1;
         LabOptions_ActionLog[i][OPTACTIONLOG_ACTION].val = i;
         LabOptions_ActionLog[i][OPTACTIONLOG_ACTION].val_prev = i;
     }
@@ -6514,26 +6517,6 @@ void Event_Think(GOBJ *event)
         }
     }
     
-    // fill out action log for this frame
-    u8 action_idx = 0;
-    bool start = false;
-    for (u8 i = 0; i < ACTION_LOG_MAX; ++i) {
-        int action_state_id = LabOptions_ActionLog[i][OPTACTIONLOG_STATE].val;
-        int action_state_frame = LabOptions_ActionLog[i][OPTACTIONLOG_FRAME].val;
-        if (hmn_data->state_id == action_state_id && hmn_data->TM.state_frame >= action_state_frame) {
-            action_idx = i;
-            start = i == 0; // the special 0 index resets log
-        }
-    }
-    if (start) {
-        action_log_cur = 0;
-        memset(action_log, 0, sizeof(action_log));
-    } else if (action_log_cur < countof(action_log)) {
-        action_log[action_log_cur++] = action_idx;
-    }
-
-    // TODO: update action_log
-
     if (LabOptions_CPU[OPTCPU_SET_POS].OnSelect == Lab_FinishMoveCPU) {
         // set CPU position
 
@@ -6559,17 +6542,39 @@ void Event_Think(GOBJ *event)
     }
 }
 
+void ActionLog_Think(void) {
+    GOBJ *hmn = Fighter_GetGObj(0);
+    FighterData *hmn_data = hmn->userdata;
+
+    u8 action_idx = 0;
+    bool start = false;
+    for (u8 i = 0; i < ACTION_LOG_MAX; ++i) {
+        int action_state_id = LabOptions_ActionLog[i][OPTACTIONLOG_STATE].val;
+        int action_state_frame = LabOptions_ActionLog[i][OPTACTIONLOG_FRAME].val;
+        if (hmn_data->state_id == action_state_id && hmn_data->TM.state_frame >= action_state_frame) {
+            action_idx = LabOptions_ActionLog[i][OPTACTIONLOG_ACTION].val;
+            start = action_idx == 0; // the special 0 action resets log
+        }
+    }
+    if (start) {
+        action_log_cur = 0;
+        memset(action_log, 0, sizeof(action_log));
+    } else if (action_log_cur < countof(action_log)) {
+        action_log[action_log_cur++] = action_idx;
+    }
+}
+
 void ActionLog_GX(GOBJ *gobj, int pass) {
     if (pass == 2 && ActionLog_IsShowing()) {
         char *key_names[ACTION_LOG_MAX];
         GXColor key_colours[ACTION_LOG_MAX];
 
         int key_count = 0;
-        for (int i = 1; i < ACTION_LOG_MAX; ++i) {
+        for (int i = 0; i < ACTION_LOG_MAX; ++i) {
             EventOption *page = LabOptions_ActionLog[i];
-            if (page[OPTACTIONLOG_STATE].val) {
+            if (page[OPTACTIONLOG_STATE].val && page[OPTACTIONLOG_ACTION].val) {
                 key_names[key_count] = action_log_state_name_buffers[i];
-                key_colours[key_count] = action_colors[i];
+                key_colours[key_count] = action_colors[page[OPTACTIONLOG_ACTION].val];
                 key_count++;
             }
         }

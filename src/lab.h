@@ -106,9 +106,10 @@ void Lab_ChangeAdvCounterLogic(GOBJ *menu_gobj, int value);
 void Lab_ChangeInputs(GOBJ *menu_gobj, int value);
 void Lab_ChangeAlterInputsFrame(GOBJ *menu_gobj, int value);
 int Lab_SetAlterInputsMenuOptions(GOBJ *menu_gobj);
-void Lab_ChangeActionBehaviour(GOBJ *menu_gobj, int value);
+void Lab_ChangeActionNumber(GOBJ *menu_gobj, int value);
 void Lab_SetActionLogState(GOBJ *menu_gobj);
 void ActionLog_GX(GOBJ *gobj, int pass);
+void ActionLog_Think(void);
 void DIDraw_Init(void);
 void DIDraw_Reset(int ply);
 void DIDraw_Update(void);
@@ -1772,6 +1773,7 @@ static u32 action_log_cur = countof(action_log); // start disabled
 #define ACTION_LOG_MAX 10
 
 enum action_log_option {
+    OPTACTIONLOG_NUMBER,
     OPTACTIONLOG_ACTION,
     OPTACTIONLOG_STATE,
     OPTACTIONLOG_FRAME,
@@ -1783,7 +1785,7 @@ static EventOption LabOptions_ActionLog[ACTION_LOG_MAX][OPTACTIONLOG_COUNT];
 
 static char action_log_state_name_buffers[ACTION_LOG_MAX][32];
 
-static const char *action_log_page_names[ACTION_LOG_MAX] = {
+static const char *LabValues_ActionLogBehaviour[ACTION_LOG_MAX] = {
     "Start Log",
     "Red",
     "Green",
@@ -1811,12 +1813,20 @@ static GXColor action_colors[ACTION_LOG_MAX] = {
 
 static EventOption LabOptions_ActionLog_Default[OPTACTIONLOG_COUNT] = {
     {
+        .kind = OPTKIND_INT,
+        .name = "Action Number",
+        .format = "%d",
+        .value_min = 1,
+        .value_num = ACTION_LOG_MAX,
+        .desc = {"What action to set."},
+        .OnChange = Lab_ChangeActionNumber,
+    },
+    {
         .kind = OPTKIND_STRING,
         .name = "Action Behaviour",
-        .values = action_log_page_names,
-        .value_num = countof(action_log_page_names),
+        .values = LabValues_ActionLogBehaviour,
+        .value_num = countof(LabValues_ActionLogBehaviour),
         .desc = {"What happens when this action registers."},
-        .OnChange = Lab_ChangeActionBehaviour,
     },
     {
         .kind = OPTKIND_FUNC,

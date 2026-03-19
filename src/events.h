@@ -142,6 +142,20 @@ static inline void RectShrink(Rect *dst, float size)
     dst->h -= size * 2.f;
 }
 
+static inline void RectCentreW(Rect *dst, float new_w)
+{
+    float dx = dst->w - new_w;
+    dst->x += dx * 0.5;
+    dst->w -= dx;
+}
+
+static inline void RectCentreH(Rect *dst, float new_h)
+{
+    float dy = dst->h - new_h;
+    dst->y += dy * 0.5;
+    dst->h -= dy;
+}
+
 static inline void RectSplitL(Rect *dst, Rect *src, float size, float padding)
 {
     *dst = (Rect) { src->x, src->y, size, src->h };

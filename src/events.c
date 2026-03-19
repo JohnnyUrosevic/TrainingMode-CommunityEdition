@@ -809,7 +809,7 @@ void HUD_DrawText(const char *text, Rect *pos, float size)
         for (int i = 0; i < 4; ++i)
             Text_SetColor(new_text, i, &black);
     }
-    
+
     Text *hud_text = *text_ptr;
     hud_text->hidden = false;
     float x = pos->x * 10.f + pos->w * 5.f;
@@ -830,9 +830,10 @@ static float log_size = 1.f;
 static float log_padding = 0.1f;
 static float log_y_pos = 15.f;
 static GXColor log_background_color = { 20, 20, 20, 255 };
-static float action_name_size = 4.5f;
-static float action_name_padding = 1.f;
-static float action_name_y_pos = 15.f;
+static float action_key_size = 15.f;
+static float action_key_size_decrement = 1.2f;
+static float action_key_y_pos = 15.f;
+static float action_key_height = 6.f;
 
 void HUD_DrawActionLogBar(u8 *action_log, GXColor *color_lookup, int log_count) {
     Rect rects[log_count + 1];
@@ -857,24 +858,27 @@ void HUD_DrawActionLogBar(u8 *action_log, GXColor *color_lookup, int log_count) 
 void HUD_DrawActionLogKey(char **action_names, GXColor *action_colors, int action_count) {
     Rect rects[action_count*2];
     GXColor colors[action_count*2];
-    
-    float w = action_count * action_name_size + (action_count + 1.f) * action_name_padding;
-    Rect action_table_row = { -w/2.f, action_name_y_pos, w, action_name_size + action_name_padding*2.f };
-    RectShrink(&action_table_row, action_name_padding);
-    
+
+    float action_count_f = (float)action_count;
+    float size = action_key_size - action_count_f * action_key_size_decrement;
+    float w = action_count_f * size;
+    Rect action_table_row = { -w/2.f, action_key_y_pos, w, action_key_height };
+
     Rect cur_rect;
     for (int i = 0; i < action_count; ++i) {
-        RectSplitL(&cur_rect, &action_table_row, action_name_size, action_name_padding);
+        RectSplitL(&cur_rect, &action_table_row, size, 0);
         HUD_DrawText(action_names[i], &cur_rect, 0.34f);
         
-        colors[i*2+0] = log_background_color;
-        colors[i*2+1] = action_colors[i];
-        
+        RectCentreW(&cur_rect, log_size + log_padding);
+        RectCentreH(&cur_rect, log_size + log_padding);
         cur_rect.y += 2.f;
-        RectShrink(&cur_rect, (action_name_size - log_size) / 2.f - log_padding);
         rects[i*2+0] = cur_rect;
+
         RectShrink(&cur_rect, log_padding);
         rects[i*2+1] = cur_rect;
+
+        colors[i*2+0] = log_background_color;
+        colors[i*2+1] = action_colors[i];
     }
     
     HUD_DrawRects(rects, colors, action_count * 2);
