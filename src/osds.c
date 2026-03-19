@@ -73,11 +73,6 @@ static void RunOSD_FrameAdvantage(GOBJ *ft, GOBJ *ft_sub) {
             float stun_total = JOBJ_GetJointAnimFrameTotal(ft_def->hsd_object);
             float stun_curr = ft_def_data->state.frame;
             advantage = (int)((stun_total - stun_curr) / anim_speed) + 1;
-    
-            Message_Display(
-                OSD_FrameAdvantage, ft_data->ply, MSGCOLOR_GREEN,
-                "Frame Advantage\n%d Frames", advantage
-            );
         } else {
             // = or - on shield: advantage is -frames since shieldstun.
             advantage = -(int)ft_def_data->TM.state_frame;
@@ -111,7 +106,6 @@ void OSD_Think(GOBJ *event) {
         if (ft) UpdateIASATracking(ft);
         if (ft_sub) UpdateIASATracking(ft_sub);
 
-        RunOSD_FrameAdvantage(ft, ft_sub); // nocheckin
-        // if (osd_enabled & (1u << OSD_FrameAdvantage)) RunOSD_FrameAdvantage(ft, ft_sub);
+        if (osd_enabled & (1u << OSD_FrameAdvantage)) RunOSD_FrameAdvantage(ft, ft_sub);
     }
 }
