@@ -98,11 +98,10 @@ You'll need to right click on the node -> Open As -> JOBJ in HSDRaw in order to 
     - Add the required compilation steps in `build.sh`. Follow the same structure as the other events. You can skip the dat copy if you don't have any models attached to the event (you won't), like the powershield event.
 Poke around the other events to figure out how to implement these.
 The powershield event is the simplest and easiest to learn from.
-- If you want to create a new OSD (hard):
-    - You will need to know a lot of Power PC asm.
-    - You will need to find the function that does the processing of the value you want to measure (reach out to me if you're not sure how to find this).
-    - Create and write an asm file for the new OSD in `ASM/training-mode/Onscreen Display/`.
+- If you want to create a new OSD (simple-ish):
+    - Add your function logic to `src/osds.c`.
     - Add the OSD to the OSD list in `ASM/training-mode/Globals.s`. OSD ids are weird, I don't know exactly how to do this.
+    - Add your OSD to the corresponding slot in `ASM/training-mode/Onscreen Display/Toggle UI/Load Alt Text When Loaded With L.asm`.
 - If you want to draw graphics (easy):
     - Use the `GFX_Start` and `GFX_AddVtx` functions. Search around to see the specific usage.
     - You can use the `HUD_*` functions for higher level drawing.
