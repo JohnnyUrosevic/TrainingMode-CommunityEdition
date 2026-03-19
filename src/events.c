@@ -1,5 +1,6 @@
 #include "events.h"
 #include "savestate.h"
+#include "osds.h"
 #include <stdarg.h>
 
 /////////////////////
@@ -1019,6 +1020,10 @@ void EventLoad(void)
     void *userdata = calloc(EVENT_DATASIZE);
     GObj_AddUserData(gobj, 4, HSD_Free, userdata);
     GObj_AddProc(gobj, cb, pri);
+    
+    // Add OSD callback
+    // Very low priority of 20, runs after everything else
+    GObj_AddProc(gobj, OSD_Think, 20);
 
     // store pointer to the event's data
     *(EventDesc **)userdata = event_desc;
@@ -1441,7 +1446,7 @@ void Message_Init(void)
     GOBJ *mgr_gobj = GObj_Create(0, 7, 0);
     MsgMngrData *mgr_data = calloc(sizeof(MsgMngrData));
     GObj_AddUserData(mgr_gobj, 4, HSD_Free, mgr_data);
-    GObj_AddProc(mgr_gobj, Message_Manager, 18);
+    GObj_AddProc(mgr_gobj, Message_Manager, 21);
 
     // create text canvas
     int canvas = Text_CreateCanvas(2, mgr_gobj, 14, 15, 0, MSG_GXLINK, MSGTEXT_GXPRI, 19);
@@ -1860,7 +1865,7 @@ void Tip_Init(void)
 
     // create tipmgr gobj
     GOBJ *tipmgr_gobj = GObj_Create(0, 7, 0);
-    GObj_AddProc(tipmgr_gobj, Tip_Think, 18);
+    GObj_AddProc(tipmgr_gobj, Tip_Think, 21);
 }
 void Tip_Think(GOBJ *gobj)
 {

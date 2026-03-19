@@ -49,8 +49,7 @@
     .set CodesetLength, -0xD9C                          # word
 
     # OSD IDs
-    # These bits must match `osd_memory_bit_position` defined in lab.h in order for the
-    # Lab OSD menu to modify the correct OSD.
+    # Mirrored in osds.h!!
     .set OSD.Wavedash, 0
     .set OSD.LCancel, 1
     .set OSD.ActOoS, 3
@@ -72,7 +71,9 @@
     .set OSD.Ledge, 26
     .set OSD.ActOoHitstun, 28
 
-    # OSD Alt IDs
+    # Special ID: always displays. Never overwrites another OSD.
+    .set OSD.Null, -1
+
     # Some OSD options contain multiple sub OSDs.
     # We don't want those OSDs to overwrite each other,
     # so we have some alt IDs for them to use.

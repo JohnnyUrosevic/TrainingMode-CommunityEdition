@@ -2816,7 +2816,7 @@ struct FighterData
         u16 can_fastfall_frames;   // 0x2418, how many frames the fighter has been able to fast fall
         u16 iasa_frames;           // 0x241a, Aitch: added this for use in lab overlays
         int post_hitstun_frames;   // 0x241c, frames fighter has been out of hitstun
-        GOBJ *fighter_hurt_shield; // 0x2420, pointer to the fighter who's shield this fighter hit
+        FighterData *fighter_hurt_shield; // 0x2420, pointer to the fighter who's shield this fighter hit
         void *cb_anim;             // 0x2424, additional animation callback
 
         union {

@@ -290,13 +290,10 @@ void Lab_ChangeOverlays(GOBJ *menu_gobj, int value) {
 }
 
 void Lab_ChangeOSDs(GOBJ *menu_gobj, int value) {
-    int new_osds_value = 0;
-
-    for (int i = 0; i < LabMenu_OSDs.option_num; i++) {
-        new_osds_value |= LabOptions_OSDs[i].val << osd_memory_bit_position[i];
-    }
-
-    stc_memcard->TM_OSDEnabled = new_osds_value;
+    u32 enabled_osds = 0;
+    for (int i = 0; i < LabMenu_OSDs.option_num; i++)
+        enabled_osds |= (u32)LabOptions_OSDs[i].val << LabOSD_ID[i];
+    stc_memcard->TM_OSDEnabled = enabled_osds;
 }
 
 void Lab_ChangePlayerPercent(GOBJ *menu_gobj, int value)
@@ -5730,15 +5727,6 @@ int Export_Compress(u8 *dest, u8 *source, u32 size)
     return compress_size;
 }
 
-static void UpdateDataTracking(GOBJ *character) {
-    FighterData *data = character->userdata;
-
-    if (data->flags.past_iasa)
-        data->TM.iasa_frames++;
-    else
-        data->TM.iasa_frames = 0;
-}
-
 static void UpdateOverlays(GOBJ *character, EventOption *overlays) {
     FighterData *data = character->userdata;
 
@@ -5835,10 +5823,6 @@ void Event_PostThink(GOBJ *gobj)
 {
     GOBJ *hmn = Fighter_GetGObj(0);
     GOBJ *cpu = Fighter_GetGObj(1);
-
-    // we do this in post so that we can use the updated character data before rendering.
-    UpdateDataTracking(hmn);
-    UpdateDataTracking(cpu);
 
     UpdateOverlays(hmn, LabOptions_OverlaysHMN);
     UpdateOverlays(cpu, LabOptions_OverlaysCPU);
@@ -5952,12 +5936,9 @@ void Event_Init(GOBJ *gobj)
         }
     }
 
-    int enabled_osds = memcard->TM_OSDEnabled;
-    for (int i = 0; i < LabMenu_OSDs.option_num; i++) {
-        int osd_bit_position = osd_memory_bit_position[i];
-        int is_osd_enabled = (enabled_osds & (1 << osd_bit_position)) != 0;
-        LabOptions_OSDs[i].val = is_osd_enabled;
-    }
+    u32 enabled_osds = memcard->TM_OSDEnabled;
+    for (int i = 0; i < LabMenu_OSDs.option_num; i++)
+        LabOptions_OSDs[i].val = (enabled_osds >> LabOSD_ID[i]) & 1;
 
     // character rng options
     {

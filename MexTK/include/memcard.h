@@ -2037,7 +2037,7 @@ struct Memcard
     int unk1990;           // 0x1F18
     int unk1991;           // 0x1F1C
     int unk1992;           // 0x1F20
-    int TM_OSDEnabled;     // 0x1F24
+    u32 TM_OSDEnabled;     // 0x1F24
     u8 TM_OSDPosition;     // 0x1F28
     u8 TM_EventPage;       // 0x1F29
     u8 TM_OSDRecommended;  // 0x1F2A
