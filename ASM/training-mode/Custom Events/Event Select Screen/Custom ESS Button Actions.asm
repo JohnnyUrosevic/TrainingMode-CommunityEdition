@@ -81,6 +81,7 @@ EndTriggerRHard:
 
     bl StoreHelpGObjPtr
     .long 0
+    .long 0
 StoreHelpGObjPtr:
     mflr r29
     lwz r4, 0x0(r29)
@@ -152,8 +153,11 @@ OpenFDD:
 CloseHelp:
     lwz r3, 0x0(r29)
     branchl r12, GObj_Destroy
+    lwz r3, 0x4(r29)
+    branchl r12, Text_RemoveText
     li r3, 0
     stw r3, 0x0(r29)
+    stw r3, 0x4(r29)
     b exit
     
 OpenHelp:
@@ -167,6 +171,88 @@ OpenHelp:
     li r5, 17
     li r6, 0
     branchl r12, GObj_AddGXLink
+
+    li r3, 0
+    li r4, 1
+    branchl r12, Text_CreateTextStruct
+    mr r23, r3
+    stw r3, 0x4(r29)
+
+    # use kerning
+    li r4, 0x1
+    stb r4, 0x49(r23)
+
+    # black text
+    lis r4, 0x1010
+    ori r4, r4, 0x10FF
+    stw r4, 0x30(r23)
+
+    # white bg
+    lis r4, 0xE0E0
+    ori r4, r4, 0xE0FF
+    stw r4, 0x2C(r23)
+
+    bl EndHelpInfo
+    .float 90 # text x pos
+    .float 350 # text y pos
+    .float 0.0306 # canvas x scale
+    .float 0.0306 # canvas y scale
+    .float -9.69 # canvas x pos
+    .float -7 # canvas y pos
+    .float 2 # text scale
+    .float 1 # subtext scale
+    .float 115 # subtext x pos
+    .float 430 # subtext y pos
+EndHelpInfo:
+    mflr r24
+
+    # scale canvas
+    lfs f1, 0x8(r24)
+    lfs f2, 0xC(r24)
+    stfs f1, 0x24(r23)
+    stfs f2, 0x28(r23)
+
+    # move canvas
+    lfs f1, 0x10(r24)
+    lfs f2, 0x14(r24)
+    stfs f1, 0x0(r23)
+    stfs f2, 0x4(r23)
+
+    bl EndHelpText
+    .string "TM-CE Tips"
+    .align 2
+EndHelpText:
+    mflr r4
+
+    # init text
+    lfs f1, 0x0(r24) # x offset
+    lfs f2, 0x4(r24) # y offset
+    branchl r12, Text_InitializeSubtext
+
+    mr r4, r3
+    mr r3, r23
+    lfs f1, 0x18(r24) # x scale
+    lfs f2, 0x18(r24) # y scale
+    branchl r12, Text_UpdateSubtextSize
+
+bl EndHelpSubText
+    .string "Tutorial Video Series"
+    .align 2
+EndHelpSubText:
+    mflr r4
+
+    # init subtext
+    mr r3, r23
+    lfs f1, 0x20(r24) # x offset
+    lfs f2, 0x24(r24) # y offset
+    branchl r12, Text_InitializeSubtext
+
+    mr r4, r3
+    mr r3, r23
+    lfs f1, 0x1C(r24) # x scale
+    lfs f2, 0x1C(r24) # y scale
+    branchl r12, Text_UpdateSubtextSize
+
     b exit
 
 SwitchPage:
