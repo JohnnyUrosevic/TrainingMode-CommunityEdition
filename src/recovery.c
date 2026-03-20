@@ -971,7 +971,7 @@ static void Think_Sheik(GOBJ *cpu, u32 opt_flags) {
 #define CF_UPB_HEIGHT 48
 #define CF_JUMP_HEIGHT 40
 
-#define CF_UPB_CHANCE_FAR 5
+#define CF_UPB_CHANCE_FAR 17
 #define CF_UPB_CHANCE_WITH_JUMP 50
 #define CF_UPB_CHANCE_CLOSE 100
 #define CF_UPB_DRIFT_CHANGE_CHANCE 20
