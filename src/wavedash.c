@@ -219,11 +219,8 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
              hmn_data->TM.state_prev_frames[0] == 0)))
     {
         event_data->airdodge_frame = event_data->timer;
-        Vec2 lstick = hmn_data->input.lstick;
-        event_data->angle_real = -atan2(lstick.Y, fabs(lstick.X)) / M_1DEGREE;
-
-        PADStatus *stat = PadGetRaw(0);
-        event_data->angle_raw = -atan2(stat->stickY, fabs(stat->stickX)) / M_1DEGREE;
+        PADStatus *stat = PadGetRaw(hmn_data->pad_index);
+        event_data->angle = -atan2(stat->stickY, fabs(stat->stickX)) / M_1DEGREE;
     }
 
     void *mat_anim = 0;
@@ -298,13 +295,7 @@ void Wavedash_Think(WavedashData *event_data, FighterData *hmn_data)
         Text_SetText(event_data->hud.text_timing, 0, "Perfect");
 
     // Update airdodge angle text
-    // We show both the raw and real angles in case they differ
-    if (fabs(event_data->angle_real - event_data->angle_raw) < 1.0)
-        Text_SetText(event_data->hud.text_angle, 0, "%.1f",
-                event_data->angle_real);
-    else
-        Text_SetText(event_data->hud.text_angle, 0, "%.1f (%.1f)",
-                event_data->angle_real, event_data->angle_raw);
+    Text_SetText(event_data->hud.text_angle, 0, "%.1f", event_data->angle);
 
     // update succession
     int successful = event_data->wd_succeeded;
@@ -664,7 +655,7 @@ void Tips_Think(WavedashData *event_data, FighterData *hmn_data)
             && hmn_data->TM.state_prev[0] == ASID_ESCAPEAIR
             && hmn_data->TM.state_prev_frames[0] > 3 // slow to hit ground from airdodge
             && hmn_data->TM.state_prev_frames[1] < 5 // slightly late airdodge timing
-            && event_data->angle_real > 0            // ignore horizontal airdodge
+            && event_data->angle > 0            // ignore horizontal airdodge
             && !event_data->short_hop)               // full hop
     {
         if (event_data->tip.short_hop++ % 8 == 2)
