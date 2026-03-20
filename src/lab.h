@@ -1777,6 +1777,10 @@ enum action_log_option {
     OPTACTIONLOG_ACTION,
     OPTACTIONLOG_STATE,
     OPTACTIONLOG_FRAME,
+    OPTACTIONLOG_LSTICK_X,
+    OPTACTIONLOG_LSTICK_Y,
+    OPTACTIONLOG_FASTFALL,
+    OPTACTIONLOG_IASA,
 
     OPTACTIONLOG_COUNT
 };
@@ -1840,6 +1844,34 @@ static EventOption LabOptions_ActionLog_Default[OPTACTIONLOG_COUNT] = {
         .format = "%d",
         .name = "State Frame",
         .desc = {"Set the minimum state frame."},
+    },
+    {
+        .kind = OPTKIND_INT,
+        .value_min = -80,
+        .value_num = 161,
+        .val = 0,
+        .format = "%d",
+        .name = "Min Stick X",
+        .desc = {"Minimum lstick X value for this state to register."},
+    },
+    {
+        .kind = OPTKIND_INT,
+        .value_min = -80,
+        .value_num = 161,
+        .val = 0,
+        .format = "%d",
+        .name = "Min Stick Y",
+        .desc = {"Minimum lstick Y value for this state to register."},
+    },
+    {
+        .kind = OPTKIND_TOGGLE,
+        .name = "Fastfall",
+        .desc = {"Require this state to be in fast fall."},
+    },
+    {
+        .kind = OPTKIND_TOGGLE,
+        .name = "IASA",
+        .desc = {"Require this state to be in IASA."},
     },
 };
 

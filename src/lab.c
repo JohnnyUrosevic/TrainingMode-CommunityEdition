@@ -6548,10 +6548,29 @@ void ActionLog_Think(void) {
 
     u8 action_idx = 0;
     bool start = false;
+    HSD_Pad *pad = PadGetEngine(hmn_data->pad_index);
     for (u8 i = 0; i < ACTION_LOG_MAX; ++i) {
-        int action_state_id = LabOptions_ActionLog[i][OPTACTIONLOG_STATE].val;
-        int action_state_frame = LabOptions_ActionLog[i][OPTACTIONLOG_FRAME].val;
-        if (hmn_data->state_id == action_state_id && hmn_data->TM.state_frame >= action_state_frame) {
+        int state_id = LabOptions_ActionLog[i][OPTACTIONLOG_STATE].val;
+        int state_frame = LabOptions_ActionLog[i][OPTACTIONLOG_FRAME].val;
+        int lstick_x = LabOptions_ActionLog[i][OPTACTIONLOG_LSTICK_X].val;
+        int lstick_y = LabOptions_ActionLog[i][OPTACTIONLOG_LSTICK_Y].val;
+        int ff = LabOptions_ActionLog[i][OPTACTIONLOG_FASTFALL].val;
+        int iasa = LabOptions_ActionLog[i][OPTACTIONLOG_IASA].val;
+
+        if (
+            hmn_data->state_id == state_id
+            && hmn_data->TM.state_frame >= state_frame
+            && (
+                (lstick_x <= 0 && pad->stickX <= lstick_x)
+                || (lstick_x >= 0 && pad->stickX >= lstick_x)
+            )
+            && (
+                (lstick_y <= 0 && pad->stickY <= lstick_y)
+                || (lstick_y >= 0 && pad->stickY >= lstick_y)
+            )
+            && (!ff || hmn_data->flags.is_fastfall)
+            && (!iasa || CheckIASA(hmn_data))
+        ) {
             action_idx = LabOptions_ActionLog[i][OPTACTIONLOG_ACTION].val;
             start = action_idx == 0; // the special 0 action resets log
         }
