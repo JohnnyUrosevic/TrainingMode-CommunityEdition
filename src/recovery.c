@@ -642,6 +642,7 @@ static void Think_Spacies(GOBJ *cpu, u32 opt_flags) {
             && (
                 // force upb if at end of range
                 (pos.Y < 0.f && distance_to_ledgegrab > upb_distance)
+                || (pos.Y < Stage_GetBlastzoneBottom() + 10.f)
     
                 // otherwise, random chance to upb
                 || (
