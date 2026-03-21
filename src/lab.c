@@ -3730,9 +3730,9 @@ void Record_Think(GOBJ *rec_gobj)
     int cpu_mode = LabOptions_Record[OPTREC_CPUMODE].val;
     
     // get longest recording
-    int input_num = hmn_inputs->num;
-    if (cpu_inputs->num > hmn_inputs->num)
-        input_num = cpu_inputs->num;
+    int input_num = 0;
+    if (hmn_mode == RECMODE_HMN_PLAYBACK && hmn_inputs->num > input_num) input_num = hmn_inputs->num;
+    if (cpu_mode == RECMODE_CPU_PLAYBACK && cpu_inputs->num > input_num) input_num = cpu_inputs->num;
 
     // update inputs ---------------------------------------
 
