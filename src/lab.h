@@ -22,6 +22,7 @@ static EventMenu LabMenu_SlotManagement;
 static EventMenu LabMenu_AlterInputs;
 static EventMenu LabMenu_OSDs;
 static EventMenu LabMenu_ActionLog;
+static EventMenu LabMenu_HitboxTrails;
 
 #define AUTORESTORE_DELAY 20
 #define INTANG_COLANIM 10
@@ -110,6 +111,8 @@ void Lab_ChangeActionNumber(GOBJ *menu_gobj, int value);
 void Lab_SetActionLogState(GOBJ *menu_gobj);
 void ActionLog_GX(GOBJ *gobj, int pass);
 void ActionLog_Think(void);
+void HitboxTrails_GX(GOBJ *gobj, int pass);
+void HitboxTrails_Think(void);
 void DIDraw_Init(void);
 void DIDraw_Reset(int ply);
 void DIDraw_Update(void);
@@ -1042,6 +1045,7 @@ enum gen_option
     OPTGEN_TAUNT,
     OPTGEN_CUSTOM_OSD,
     OPTLAB_ACTIONLOG,
+    OPTLAB_HITBOXTRAILS,
     OPTGEN_OSDS,
 
     OPTGEN_COUNT
@@ -1209,6 +1213,12 @@ static EventOption LabOptions_General[OPTGEN_COUNT] = {
         .name = "Action Log",
         .desc = {"Create a log describing your action states,",
                  "similar to the ledgedash event."},
+    },
+    {
+        .kind = OPTKIND_MENU,
+        .menu = &LabMenu_HitboxTrails,
+        .name = "Hitbox Trails",
+        .desc = {"Create a trail of your hitboxes to visualize spacing."}
     },
     {
         .kind = OPTKIND_MENU,
@@ -1879,6 +1889,63 @@ static EventMenu LabMenu_ActionLog = {
     .name = "Action Log",
     .option_num = sizeof(LabOptions_ActionLog[0]) / sizeof(EventOption),
     .options = LabOptions_ActionLog[0],
+};
+
+// HITBOX TRAILS --------------------------------------------------------------
+
+typedef struct HitboxTrail {
+    Vec3 a;
+    Vec3 b;
+    float size;
+    GXColor color;
+    int frame_created;
+} HitboxTrail;
+
+static u32 hitbox_trail_i;
+static HitboxTrail hitbox_trails[64];
+
+enum hitbox_trails_option
+{
+    OPTHITBOXTRAILS_ENABLED,
+    OPTHITBOXTRAILS_DECAY,
+    // OPTHITBOXTRAILS_TINT,
+
+    OPTHITBOXTRAILS_COUNT
+};
+
+const u8 LabValues_HitboxTrailDecayConst[] = { 15, 30, 0 };
+const u8 LabValues_HitboxTrailDecayFactor[] = { 4, 2, 0 };
+const char *LabOptions_HitboxTrailDecay[] = { "Quick", "Slow", "Off" };
+const char *LabOptions_HitboxTrailTint[] = { "Damage", "ID", "Off" };
+
+// const char *LabOptions_HitboxTrailTint[] = { "Time", "" };
+
+static EventOption LabOptions_HitboxTrails[OPTHITBOXTRAILS_COUNT] = {
+    {
+        .kind = OPTKIND_TOGGLE,
+        .name = "Enable",
+        .desc = {"Enable hitbox trails."},
+    },
+    {
+        .kind = OPTKIND_STRING,
+        .value_num = countof(LabOptions_HitboxTrailDecay),
+        .name = "Decay",
+        .desc = {"Choose which button will advance the frame"},
+        .values = LabOptions_HitboxTrailDecay,
+    },
+    // {
+    //     .kind = OPTKIND_STRING,
+    //     .value_num = countof(LabOptions_HitboxTrailTint),
+    //     .name = "Tint",
+    //     .desc = {"IDK"},
+    //     .values = LabOptions_HitboxTrailTint,
+    // },
+};
+
+static EventMenu LabMenu_HitboxTrails = {
+    .name = "Hitbox Trails",
+    .option_num = countof(LabOptions_HitboxTrails),
+    .options = LabOptions_HitboxTrails,
 };
 
 // CPU MENU --------------------------------------------------------------

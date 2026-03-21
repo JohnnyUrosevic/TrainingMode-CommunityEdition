@@ -5871,6 +5871,7 @@ void Event_PostThink(GOBJ *gobj)
     UpdateOverlays(cpu, LabOptions_OverlaysCPU);
 
     ActionLog_Think();
+    HitboxTrails_Think();
     Stage_Think();
 }
 
@@ -5882,6 +5883,7 @@ void Event_Init(GOBJ *gobj)
     GOBJ *cpu = Fighter_GetGObj(1);
     FighterData *cpu_data = cpu->userdata;
     GObj_AddProc(gobj, Event_PostThink, 20);
+    GObj_AddGXLink(gobj, HitboxTrails_GX, 5, 0);
 
     // Init runtime options...
     
@@ -6408,7 +6410,7 @@ void Event_Think(GOBJ *event)
         event_vars->Savestate_Save_v1(event_vars->savestate, Savestate_Silent);
         event_vars->savestate_saved_while_mirrored = event_vars->loaded_mirrored;
     }
-    
+
     if (ActionLog_IsShowing())
         Match_HideTimer();
     else
@@ -6643,6 +6645,64 @@ void ActionLog_GX(GOBJ *gobj, int pass) {
 
         event_vars->HUD_DrawActionLogBar(action_log, action_colors, countof(action_log));
         event_vars->HUD_DrawActionLogKey(key_names, key_colours, key_count);
+    }
+}
+
+void HitboxTrails_Think(void) {
+    if (!LabOptions_HitboxTrails[OPTHITBOXTRAILS_ENABLED].val)
+        return;
+
+    for (int ply = 0; ply < 4; ++ply) {
+        GOBJ *ft = Fighter_GetGObj(ply);
+        if (!ft) continue;
+
+        FighterData *ft_data = ft->userdata;
+        for (u32 hit_i = 0; hit_i < countof(ft_data->hitbox); ++hit_i) {
+            ftHit *hit = &ft_data->hitbox[hit_i];
+            if (!hit->active) continue;
+
+            u8 r = 255;
+            u8 g = 128 - (u8)(hit->dmg_f * 10) / 2;
+            u8 b = g;
+
+            hitbox_trails[hitbox_trail_i] = (HitboxTrail) {
+                .a = hit->pos_prev,
+                .b = hit->pos,
+                .size = hit->size,
+                .color = { r, g, b, 200 },
+                .frame_created = event_vars->game_timer,
+            };
+            hitbox_trail_i = (hitbox_trail_i + 1) % countof(hitbox_trails);
+        }
+    }
+}
+
+void HitboxTrails_GX(GOBJ *gobj, int pass) {
+    if (!LabOptions_HitboxTrails[OPTHITBOXTRAILS_ENABLED].val)
+        return;
+
+    int decay_const = LabValues_HitboxTrailDecayConst[LabOptions_HitboxTrails[OPTHITBOXTRAILS_DECAY].val];
+    int decay_factor = LabValues_HitboxTrailDecayFactor[LabOptions_HitboxTrails[OPTHITBOXTRAILS_DECAY].val];
+
+    if (pass == 2) {
+        int game_timer = event_vars->game_timer;
+
+        for (u32 i = 0; i < countof(hitbox_trails); ++i) {
+            HitboxTrail *hit = &hitbox_trails[i];
+            if (hit->size == 0) continue;
+            if (hit->frame_created > event_vars->game_timer) continue;
+
+            static GXColor hit_ambient = {0, 0, 0, 0};
+            GXColor hit_diffuse = hit->color;
+
+            int elapsed = game_timer - hit->frame_created;
+            int fade = (elapsed - decay_const) * decay_factor;
+            if (fade < 0) fade = 0;
+            if (fade >= hit_diffuse.a) continue;
+            hit_diffuse.a -= fade;
+
+            Develop_DrawSphere(hit->size, &hit->a, &hit->b, &hit_diffuse, &hit_ambient);
+        }
     }
 }
 
