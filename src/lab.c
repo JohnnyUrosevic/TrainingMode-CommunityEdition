@@ -3855,6 +3855,29 @@ void Record_SetInputs(GOBJ *fighter, RecInputs *inputs, bool mirror) {
     stat->analogB = 0;
 }
 
+static void Record_ClampPad(s8 *store_x, s8 *store_y, s8 prev_raw_x, s8 prev_raw_y) {
+    if (-6 <= prev_raw_y && prev_raw_y <= 6) {
+        if (prev_raw_x <= -80) {
+            *store_x = -80;
+            *store_y = 0;
+        }
+        if (prev_raw_x >= 80) {
+            *store_x = 80;
+            *store_y = 0;
+        }
+    }
+    else if (-6 <= prev_raw_x && prev_raw_x <= 6) {
+        if (prev_raw_y <= -80) {
+            *store_x = 0;
+            *store_y = -80;
+        }
+        if (prev_raw_y >= 80) {
+            *store_x = 0;
+            *store_y = 80;
+        }
+    }
+}
+
 // assumes rec_mode_cpu
 void Record_Update(int ply, RecInputData *input_data, RecInputData *rerecord_input_data, int rec_mode)
 {
@@ -3916,6 +3939,26 @@ void Record_Update(int ply, RecInputData *input_data, RecInputData *rerecord_inp
             inputs->stickY = pad->stickY;
             inputs->substickX = pad->substickX;
             inputs->substickY = pad->substickY;
+
+            /*
+                Aitch: The ucf 1.0 cardinal fix is not applied during playback, even when we set the raw pads.
+                The fix injects inside of Fighter_Spaghetti_8006AD10.
+                It checks the fighter's raw pad and if it's near the cardinal, then it places the fighter's stick value on the cardinal.
+                It doesn't adjust the raw pads, or the engine pads, or the master pads. It reads the raw pad and set the stick vals in FighterData.
+                Since we use the engine pad in recordings to save and load inputs, the ucf code doesn't read our written inputs and we don't read their written inputs.
+
+                So we need to adjust the recorded inputs either during recording or during playback,
+                but adjusting during playback doesn't work because we don't have access to the raw pads that we need to run the fix.
+                So we do it here before storing the inputs.
+
+                I'm not sure exactly why this doesn't work when we write the raw pad during playback like the other UCF codes,
+                but I've been trying to fix this issue for 6 hours and I don't have the strength to question it.
+            */
+            PadLibData *p = stc_padlibdata;
+            u8 index = (p->qread + p->qnum - 1) % p->qnum;
+            PADStatus *prev_raw_pad = &p->queue[index].stat[fighter_data->pad_index];
+            Record_ClampPad(&inputs->stickX, &inputs->stickY, prev_raw_pad->stickX, prev_raw_pad->stickY);
+            Record_ClampPad(&inputs->substickX, &inputs->substickY, prev_raw_pad->substickX, prev_raw_pad->substickY);
 
             // trigger - find the one pressed down more
             u8 trigger = pad->triggerLeft;
