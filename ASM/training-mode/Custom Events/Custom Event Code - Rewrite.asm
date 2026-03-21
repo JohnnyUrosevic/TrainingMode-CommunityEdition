@@ -10522,6 +10522,11 @@ MoveCPU:
     mulli r0, r4, 68
     add r5, r0, r3
 
+    # Ensure HMN In Wait
+    lwz r4, 0x10(P1Data)
+    cmpwi r4, ASID_Wait
+    bne MoveCPUExit
+
     # Check DPad Down
     lwz r3, 0xC(r5)
     rlwinm. r0, r3, 0, 29, 29
