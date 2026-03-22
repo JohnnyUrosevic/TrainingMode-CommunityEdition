@@ -6648,6 +6648,19 @@ void ActionLog_GX(GOBJ *gobj, int pass) {
     }
 }
 
+static HitboxTrail *HitboxTrails_Add(void) {
+    HitboxTrail *trail = &hitbox_trails[hitbox_trail_i];
+    hitbox_trail_i = (hitbox_trail_i + 1) % countof(hitbox_trails);
+    return trail;
+}
+
+static GXColor HitboxTrails_Color(int dmg) {
+    u8 r = 255;
+    u8 g = 128 - (u8)(dmg * 10) / 2;
+    u8 b = g;
+    return (GXColor) { r, g, b, 200 };
+}
+
 void HitboxTrails_Think(void) {
     if (!LabOptions_HitboxTrails[OPTHITBOXTRAILS_ENABLED].val)
         return;
@@ -6661,18 +6674,30 @@ void HitboxTrails_Think(void) {
             ftHit *hit = &ft_data->hitbox[hit_i];
             if (!hit->active) continue;
 
-            u8 r = 255;
-            u8 g = 128 - (u8)(hit->dmg_f * 10) / 2;
-            u8 b = g;
-
-            hitbox_trails[hitbox_trail_i] = (HitboxTrail) {
+            *HitboxTrails_Add() = (HitboxTrail) {
                 .a = hit->pos_prev,
                 .b = hit->pos,
                 .size = hit->size,
-                .color = { r, g, b, 200 },
+                .color = HitboxTrails_Color(hit->dmg),
                 .frame_created = event_vars->game_timer,
             };
-            hitbox_trail_i = (hitbox_trail_i + 1) % countof(hitbox_trails);
+        }
+    }
+
+    for (GOBJ *gobj = (*stc_gobj_lookup)[MATCHPLINK_ITEM]; gobj; gobj = gobj->next) {
+        ItemData *item = gobj->userdata;
+
+        for (u32 hit_i = 0; hit_i < countof(item->hitbox); ++hit_i) {
+            itHit *hit = &item->hitbox[hit_i];
+            if (!hit->active) continue;
+
+            *HitboxTrails_Add() = (HitboxTrail) {
+                .a = hit->pos_prev,
+                .b = hit->pos,
+                .size = hit->size,
+                .color = HitboxTrails_Color(hit->dmg),
+                .frame_created = event_vars->game_timer,
+            };
         }
     }
 }
