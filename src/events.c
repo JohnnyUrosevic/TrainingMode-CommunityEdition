@@ -1750,7 +1750,6 @@ void Message_Manager(GOBJ *mngr_gobj)
 }
 void Message_Destroy(GOBJ **msg_queue, int msg_num)
 {
-
     GOBJ *msg_gobj = msg_queue[msg_num];
     MsgData *msg_data = msg_gobj->userdata;
 
@@ -1762,9 +1761,6 @@ void Message_Destroy(GOBJ **msg_queue, int msg_num)
     // Destroy GOBJ
     GObj_Destroy(msg_gobj);
 
-    // null pointer
-    msg_queue[msg_num] = 0;
-
     // shift others
     for (int i = (msg_num); i < (MSGQUEUE_SIZE - 1); i++)
     {
@@ -1775,10 +1771,11 @@ void Message_Destroy(GOBJ **msg_queue, int msg_num)
         if (this_msg_gobj != 0)
         {
             MsgData *this_msg_data = this_msg_gobj->userdata;
-            if (this_msg_data != 0)
-                this_msg_data->prev_index = i + 1; // prev position
+            this_msg_data->prev_index = i + 1; // prev position
         }
     }
+
+    msg_queue[MSGQUEUE_SIZE-1] = 0;
 }
 void Message_Add(GOBJ *msg_gobj, int queue_num)
 {
@@ -1806,7 +1803,6 @@ void Message_Add(GOBJ *msg_gobj, int queue_num)
                 // Remove this message if its of the same kind
                 if ((this_msg_data->kind == msg_data->kind))
                 {
-
                     Message_Destroy(msg_queue, i); // remove the message and shift others
 
                     // if the message we're replacing is the most recent message, instantly
