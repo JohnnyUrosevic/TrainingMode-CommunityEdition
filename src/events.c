@@ -1500,14 +1500,14 @@ GOBJ *Message_Display(int msg_kind, int queue_num, int msg_color, char *format, 
     // background scale
     msg_jobj->scale = scale;
     // text scale
-    msg_text->viewport_scale.X = (scale.X * 0.01) * MSGTEXT_BASESCALE;
-    msg_text->viewport_scale.Y = (scale.Y * 0.01) * MSGTEXT_BASESCALE;
+    msg_text->viewport_scale.X = (scale.X * 0.01f) * MSGTEXT_BASESCALE;
+    msg_text->viewport_scale.Y = (scale.Y * 0.01f) * MSGTEXT_BASESCALE;
     msg_text->aspect.X = MSGTEXT_BASEWIDTH;
 
     JOBJ_SetMtxDirtySub(msg_jobj);
 
     // build string
-    char buffer[(MSG_LINEMAX * MSG_CHARMAX) + 1];
+    char buffer[MSG_LINEMAX * MSG_CHARMAX + 1];
     va_start(args, format);
     vsprintf(buffer, format, args);
     va_end(args);
@@ -1553,11 +1553,11 @@ GOBJ *Message_Display(int msg_kind, int queue_num, int msg_color, char *format, 
         msg_line[line_length] = '\0';
 
         // increment msg
-        msg += (line_length + 1); // +1 to skip past newline
+        msg += line_length + 1; // +1 to skip past newline
 
         // print line
-        int y_base = (line_num - 1) * ((-1 * MSGTEXT_YOFFSET) / 2);
-        int y_delta = (i * MSGTEXT_YOFFSET);
+        int y_base = (line_num - 1) * (-MSGTEXT_YOFFSET / 2);
+        int y_delta = i * MSGTEXT_YOFFSET;
         Text_AddSubtext(msg_text, 0, y_base + y_delta, msg_line);
     }
 
@@ -1576,12 +1576,12 @@ void Message_Manager(GOBJ *mngr_gobj)
         GOBJ **msg_queue = mgr_data->msg_queue[i];
 
         // anim update (time based logic)
-        for (int j = (MSGQUEUE_SIZE - 1); j >= 0; j--) // iterate through backwards (because deletions)
+        for (int j = MSGQUEUE_SIZE - 1; j >= 0; j--) // iterate through backwards (because deletions)
         {
             GOBJ *this_msg_gobj = msg_queue[j];
 
             // if message exists
-            if (this_msg_gobj != 0)
+            if (this_msg_gobj)
             {
                 MsgData *this_msg_data = this_msg_gobj->userdata;
 
@@ -1628,7 +1628,7 @@ void Message_Manager(GOBJ *mngr_gobj)
                 {
 
                     // if timer is ended, remove the message
-                    if ((this_msg_data->anim_timer <= 0))
+                    if (this_msg_data->anim_timer <= 0)
                     {
                         Message_Destroy(msg_queue, j);
                     }
@@ -1645,7 +1645,7 @@ void Message_Manager(GOBJ *mngr_gobj)
             GOBJ *this_msg_gobj = msg_queue[j];
 
             // if message exists
-            if (this_msg_gobj != 0)
+            if (this_msg_gobj)
             {
                 MsgData *this_msg_data = this_msg_gobj->userdata;
                 Text *this_msg_text = this_msg_data->text;
@@ -1682,8 +1682,6 @@ void Message_Manager(GOBJ *mngr_gobj)
                 }
 
                 // Get the onscreen position for this queue
-                //float pos_delta = stc_msg_queue_offsets[i];
-
                 Vec3 this_msg_pos = {0, 0, 0};
 
                 switch (this_msg_data->state)
@@ -1714,8 +1712,8 @@ void Message_Manager(GOBJ *mngr_gobj)
                     this_msg_jobj->trans.X = this_msg_pos.X;
                     this_msg_jobj->trans.Y = this_msg_pos.Y;
                     // text position
-                    this_msg_text->trans.X = this_msg_pos.X + (MSGTEXT_BASEX * (scale.X / 4.0));
-                    this_msg_text->trans.Y = (this_msg_pos.Y * -1) + (MSGTEXT_BASEY * (scale.Y / 4.0));
+                    this_msg_text->trans.X =  this_msg_pos.X + MSGTEXT_BASEX * scale.X * 0.25f;
+                    this_msg_text->trans.Y = -this_msg_pos.Y + MSGTEXT_BASEY * scale.Y * 0.25f;
 
                     // adjust bar
                     JOBJ *bar;
@@ -1727,17 +1725,17 @@ void Message_Manager(GOBJ *mngr_gobj)
                 case (MSGSTATE_DELETE):
                 {
                     // get time
-                    float t = ((this_msg_data->anim_timer) / (float)MSGTIMER_DELETE);
+                    float t = this_msg_data->anim_timer / (float)MSGTIMER_DELETE;
 
                     Vec3 *scale = &this_msg_jobj->scale;
                     Vec3 *pos = &this_msg_jobj->trans;
 
                     // BG scale
-                    scale->Y = smooth_lerp(t,  0.0, 1.0);
+                    scale->Y = smooth_lerp(t,  0.f, 1.f);
                     // text scale
-                    this_msg_text->viewport_scale.Y = (scale->Y * 0.01) * MSGTEXT_BASESCALE;
+                    this_msg_text->viewport_scale.Y = scale->Y * 0.01f * MSGTEXT_BASESCALE;
                     // text position
-                    this_msg_text->trans.Y = (pos->Y * -1) + (MSGTEXT_BASEY * (scale->Y / 4.0));
+                    this_msg_text->trans.Y = -pos->Y + MSGTEXT_BASEY * scale->Y * 0.25f;
 
                     break;
                 }
@@ -1755,20 +1753,20 @@ void Message_Destroy(GOBJ **msg_queue, int msg_num)
 
     // Destroy text
     Text *text = msg_data->text;
-    if (text != 0)
+    if (text)
         Text_Destroy(text);
 
     // Destroy GOBJ
     GObj_Destroy(msg_gobj);
 
     // shift others
-    for (int i = (msg_num); i < (MSGQUEUE_SIZE - 1); i++)
+    for (int i = msg_num; i < MSGQUEUE_SIZE - 1; i++)
     {
         msg_queue[i] = msg_queue[i + 1];
 
         // update its prev pos
         GOBJ *this_msg_gobj = msg_queue[i];
-        if (this_msg_gobj != 0)
+        if (this_msg_gobj)
         {
             MsgData *this_msg_data = this_msg_gobj->userdata;
             this_msg_data->prev_index = i + 1; // prev position
@@ -1777,9 +1775,9 @@ void Message_Destroy(GOBJ **msg_queue, int msg_num)
 
     msg_queue[MSGQUEUE_SIZE-1] = 0;
 }
+
 void Message_Add(GOBJ *msg_gobj, int queue_num)
 {
-
     MsgData *msg_data = msg_gobj->userdata;
     MsgMngrData *mgr_data = stc_msgmgr->userdata;
     GOBJ **msg_queue = mgr_data->msg_queue[queue_num];
@@ -1796,12 +1794,12 @@ void Message_Add(GOBJ *msg_gobj, int queue_num)
             GOBJ *this_msg_gobj = msg_queue[i];
 
             // if it exists
-            if (this_msg_gobj != 0)
+            if (this_msg_gobj)
             {
                 MsgData *this_msg_data = this_msg_gobj->userdata;
 
                 // Remove this message if its of the same kind
-                if ((this_msg_data->kind == msg_data->kind))
+                if (this_msg_data->kind == msg_data->kind)
                 {
                     Message_Destroy(msg_queue, i); // remove the message and shift others
 
@@ -1818,20 +1816,18 @@ void Message_Add(GOBJ *msg_gobj, int queue_num)
     }
 
     // first remove last message in the queue
-    if (msg_queue[MSGQUEUE_SIZE - 1] != 0)
-    {
+    if (msg_queue[MSGQUEUE_SIZE - 1])
         Message_Destroy(msg_queue, MSGQUEUE_SIZE - 1);
-    }
 
     // shift other messages
-    for (int i = (MSGQUEUE_SIZE - 2); i >= 0; i--)
+    for (int i = MSGQUEUE_SIZE - 2; i >= 0; i--)
     {
         // shift message
         msg_queue[i + 1] = msg_queue[i];
 
         // update its prev pos
         GOBJ *this_msg_gobj = msg_queue[i + 1];
-        if (this_msg_gobj != 0)
+        if (this_msg_gobj)
         {
             MsgData *this_msg_data = this_msg_gobj->userdata;
             this_msg_data->prev_index = i; // prev position
@@ -1869,13 +1865,11 @@ void Tip_Init(void)
 }
 void Tip_Think(GOBJ *gobj)
 {
-
     GOBJ *tip_gobj = stc_tipmgr.gobj;
 
     // update tip
-    if (tip_gobj != 0)
+    if (tip_gobj)
     {
-
         // update anim
         JOBJ_AnimAll(tip_gobj->hsd_object);
 
@@ -1885,8 +1879,8 @@ void Tip_Think(GOBJ *gobj)
         JOBJ_GetChild(tip_gobj->hsd_object, &tip_jobj, TIP_TXTJOINT, -1);
         JOBJ_GetWorldPosition(tip_jobj, 0, &tip_pos);
         Text *tip_text = stc_tipmgr.text;
-        tip_text->trans.X = tip_pos.X + (0 * (tip_jobj->scale.X / 4.0));
-        tip_text->trans.Y = (tip_pos.Y * -1) + (0 * (tip_jobj->scale.Y / 4.0));
+        tip_text->trans.X = tip_pos.X;
+        tip_text->trans.Y = -tip_pos.Y;
 
         // state logic
         switch (stc_tipmgr.state)
@@ -1944,7 +1938,7 @@ int Tip_Display(int lifetime, char *fmt, ...)
     va_list args;
 
     // if tip exists
-    if (stc_tipmgr.gobj != 0)
+    if (stc_tipmgr.gobj)
     {
         // if tip is in the process of exiting
         if (stc_tipmgr.state == 2)
@@ -1989,9 +1983,9 @@ int Tip_Display(int lifetime, char *fmt, ...)
     // background scale
     tip_jobj->scale = scale;
     // text scale
-    tip_text->viewport_scale.X = (scale.X * 0.01) * TIP_TXTSIZEX;
-    tip_text->viewport_scale.Y = (scale.Y * 0.01) * TIP_TXTSIZEY;
-    tip_text->aspect.X = (TIP_TXTASPECT / TIP_TXTSIZEX);
+    tip_text->viewport_scale.X = scale.X * 0.01f * TIP_TXTSIZEX;
+    tip_text->viewport_scale.Y = scale.Y * 0.01f * TIP_TXTSIZEY;
+    tip_text->aspect.X = TIP_TXTASPECT / TIP_TXTSIZEX;
 
     // apply enter anim
     JOBJ_RemoveAnimAll(tip_jobj);
@@ -2031,7 +2025,6 @@ int Tip_Display(int lifetime, char *fmt, ...)
     // copy each line to an individual char array
     for (int i = 0; i < line_num; i++)
     {
-
         // check if over char max
         u8 line_length = line_length_arr[i];
         if (line_length > TIP_CHARMAX)
@@ -2045,10 +2038,10 @@ int Tip_Display(int lifetime, char *fmt, ...)
         msg_line[line_length] = '\0';
 
         // increment msg
-        msg += (line_length + 1); // +1 to skip past newline
+        msg += line_length + 1; // +1 to skip past newline
 
         // print line
-        int y_delta = (i * MSGTEXT_YOFFSET);
+        int y_delta = i * MSGTEXT_YOFFSET;
         Text_AddSubtext(tip_text, 0, y_delta, msg_line);
     }
 
@@ -2057,7 +2050,7 @@ int Tip_Display(int lifetime, char *fmt, ...)
 void Tip_Destroy(void)
 {
     // check if tip exists and isnt in exit state, enter exit
-    if ((stc_tipmgr.gobj != 0) && (stc_tipmgr.state != 2))
+    if (stc_tipmgr.gobj && stc_tipmgr.state != 2)
     {
         // apply exit anim
         JOBJ *tip_root = stc_tipmgr.gobj->hsd_object;
