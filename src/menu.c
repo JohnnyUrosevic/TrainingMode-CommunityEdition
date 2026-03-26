@@ -136,12 +136,14 @@ void EventMenu_Update(GOBJ *gobj)
 
     bool pause_pressed = false;
     int pause_index = 0;
-    for (int i = 0; i < 4; i++) {
-        HSD_Pad *pad = PadGetMaster(i);
-        if (pad->down & HSD_BUTTON_START) {
-            pause_pressed = true;
-            pause_index = i;
-            break;
+    if (event_vars->game_timer > 3) {
+        for (int i = 0; i < 4; i++) {
+            HSD_Pad *pad = PadGetMaster(i);
+            if (pad->down & HSD_BUTTON_START) {
+                pause_pressed = true;
+                pause_index = i;
+                break;
+            }
         }
     }
 

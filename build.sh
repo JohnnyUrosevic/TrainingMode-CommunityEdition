@@ -92,6 +92,7 @@ mex_build "evFunction" "build/fc.dat" "src/fc.c" "dats/ledgedash.dat" &
 mex_build "evFunction" "build/sweetspot.dat" "src/sweetspot.c" &
 mex_build "evFunction" "build/eggs.dat" "src/eggs.c" &
 mex_build "evFunction" "build/techchase.dat" "src/techchase.c" &
+mex_build "evFunction" "build/slalom.dat" "src/slalom.c" "dats/wavedash.dat" &
 
 # wait for compilation to finish
 wait
@@ -126,6 +127,7 @@ ${gc_fst} fs TM-CE.iso \
     insert TM/sweetspot.dat build/sweetspot.dat \
     insert TM/eggs.dat build/eggs.dat \
     insert TM/techchase.dat build/techchase.dat \
+    insert TM/slalom.dat build/slalom.dat \
     insert codes.gct build/codes.gct \
     insert Start.dol build/Start.dol \
     insert opening.bnr opening.bnr

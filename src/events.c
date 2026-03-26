@@ -541,6 +541,37 @@ EventDesc Eggs = {
     .matchData = &Eggs_MatchData,
 };
 
+static EventMatchData Slalom_MatchData = {
+    .timer = MATCH_TIMER_COUNTDOWN,
+    .matchType = MATCH_MATCHTYPE_TIME,
+    .hideGo = false,
+    .hideReady = false,
+    .isCreateHUD = true,
+    .timerRunOnPause = false,
+    .isCheckForZRetry = true,
+    .isShowScore = false,
+    .isRunStockLogic = false,
+    .isDisableHit = false,
+    .useKOCounter = false,
+    .timerSeconds = 60,
+};
+
+EventDesc Slalom = {
+    .eventName = "Slalom\n",
+    .eventDescription = "Dash-dance around poles\nas quickly as you can!",
+    .eventFile = "slalom",
+    .jumpTableIndex = -1,
+    .CSSType = SLCHRKIND_EVENT,
+    .allowed_characters = { .hmn = -1, .cpu = -1 },
+    .cpuKind = -1,
+    .stage = GRKINDEXT_FD,
+    .disable_hazards = true,
+    .force_sopo = false,
+    .scoreType = SCORETYPE_KO,
+    .callbackPriority = 3,
+    .matchData = &Slalom_MatchData,
+};
+
 EventDesc Multishine = {
     .eventName = "Shined Blind\n",
     .eventDescription = "How many shines can you\nperform in 10 seconds?",
@@ -599,6 +630,7 @@ EventDesc Ledgestall = {
 // Minigames
 static EventDesc *Minigames_Events[] = {
     &Eggs,
+    &Slalom,
     &Multishine,
     &Reaction,
     &Ledgestall,

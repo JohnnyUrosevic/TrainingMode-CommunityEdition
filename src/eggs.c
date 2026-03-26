@@ -24,13 +24,11 @@ void Retry(GOBJ *menu)
     Match_EndVS();
 }
 
-float RandomRange(float low, float high)
-{
+float RandomRange(float low, float high) {
     return low + (high - low) * HSD_Randf();
 }
 
-void ChangeHitDisplay(GOBJ *menu_gobj, int value)
-{
+void ChangeHitDisplay(GOBJ *menu_gobj, int value) {
     // loop through all fighters
     GOBJ *this_fighter = (*stc_gobj_lookup)[MATCHPLINK_FIGHTER];
     while (this_fighter != 0)
