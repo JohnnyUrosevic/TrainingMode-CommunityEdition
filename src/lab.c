@@ -30,6 +30,8 @@ static u8 stc_null_controller;            // making this static so importing rec
 static int stc_playback_cancelled_hmn = false;
 static int stc_playback_cancelled_cpu = false;
 
+static int stc_recording_target_frame = -1;
+
 // Computed on random slot counter action start.
 static int stc_rndm_counter_slot = -1;
 
@@ -367,28 +369,20 @@ void Lab_FreezeCPU(GOBJ *menu_gobj) {
 
 void Lab_ChangeFrameAdvance(GOBJ *menu_gobj, int value)
 {
-    // remove colanim if toggling off
-    if (value == 0)
-        LabOptions_General[OPTGEN_FRAMEBTN].disable = 1;
-    // apply colanim
-    else
-        LabOptions_General[OPTGEN_FRAMEBTN].disable = 0;
+    LabOptions_General[OPTGEN_FRAMEBTN].disable = !value;
+    LabOptions_General[OPTGEN_FRAMEBTNREV].disable = !value;
 }
 
 void Lab_ChangeFrameAdvanceButton(GOBJ *menu_gobj, int value) {
-    stc_memcard->TM_LabFrameAdvanceButton = (u8)value;
+    stc_memcard->TM_LabFrameAdvanceButton &= 0xF0;
+    stc_memcard->TM_LabFrameAdvanceButton |= (u8)value;
 }
 
-void Lab_ChangeRandom(GOBJ *menu_gobj, int value)
-{
-
-    // remove colanim if toggling off
-    if (value == 0)
-        LabOptions_General[OPTGEN_FRAMEBTN].disable = 1;
-    // apply colanim
-    else
-        LabOptions_General[OPTGEN_FRAMEBTN].disable = 0;
+void Lab_ChangeFrameDecrementButton(GOBJ *menu_gobj, int value) {
+    stc_memcard->TM_LabFrameAdvanceButton &= 0x0F;
+    stc_memcard->TM_LabFrameAdvanceButton |= (u8)value << 4;
 }
+
 void Lab_ChangeCPUPercent(GOBJ *menu_gobj, int value)
 {
     GOBJ *fighter = Fighter_GetGObj(1);
@@ -2455,9 +2449,6 @@ int Update_CheckPause()
 }
 int Update_CheckAdvance()
 {
-
-    static int timer = 0;
-
     HSD_Update *update = stc_hsd_update;
     int isAdvance = 0;
 
@@ -2468,47 +2459,78 @@ int Update_CheckAdvance()
     HSD_Pad *engine_pad = PadGetEngine(controller);
 
     // get their advance input
-    static int stc_advance_btns[] = {HSD_TRIGGER_L, HSD_TRIGGER_Z, HSD_BUTTON_X, HSD_BUTTON_Y, HSD_TRIGGER_R};
-    int advance_btn = stc_advance_btns[LabOptions_General[OPTGEN_FRAMEBTN].val];
+    int advance_btn = LabValues_FrameAdvButtonMask[LabOptions_General[OPTGEN_FRAMEBTN].val];
+    int decrement_btn = LabValues_FrameDecButtonMask[LabOptions_General[OPTGEN_FRAMEBTNREV].val];
+    
+    if (stc_recording_target_frame >= 0)
+        return 1;
 
-    // check if holding L
-    if (!LabOptions_General[OPTGEN_FRAMEBTN].disable && (pad->held & advance_btn))
-    {
-        timer++;
+    if (Pause_CheckStatus(1) == 2)
+        return 0;
 
-        // advance if first press or holding more than 10 frames
-        if (timer == 1 || timer > 30)
+    static int timer = 0;
+    static int timer_dec = 0;
+
+    if (LabOptions_General[OPTGEN_FRAME].val) {
+        if (pad->held & advance_btn)
         {
-            isAdvance = 1;
-
-            // remove button input
-            pad->down &= ~advance_btn;
-            pad->held &= ~advance_btn;
-            engine_pad->down &= ~advance_btn;
-            engine_pad->held &= ~advance_btn;
-
-            // if using L, remove analog press too
-            if (advance_btn == HSD_TRIGGER_L)
+            timer++;
+    
+            // advance if first press or holding more than 10 frames
+            if (timer == 1 || timer > 30)
             {
-                pad->triggerLeft = 0;
-                pad->ftriggerLeft = 0;
-                engine_pad->triggerLeft = 0;
-                engine_pad->ftriggerLeft = 0;
+                isAdvance = 1;
+    
+                // remove button input
+                pad->down &= ~advance_btn;
+                pad->held &= ~advance_btn;
+                engine_pad->down &= ~advance_btn;
+                engine_pad->held &= ~advance_btn;
+    
+                // if using L, remove analog press too
+                if (advance_btn == HSD_TRIGGER_L)
+                {
+                    pad->triggerLeft = 0;
+                    pad->ftriggerLeft = 0;
+                    engine_pad->triggerLeft = 0;
+                    engine_pad->ftriggerLeft = 0;
+                }
+                else if (advance_btn == HSD_TRIGGER_R)
+                {
+                    pad->triggerRight = 0;
+                    pad->ftriggerRight = 0;
+                    engine_pad->triggerRight = 0;
+                    engine_pad->ftriggerRight = 0;
+                }
             }
-            else if (advance_btn == HSD_TRIGGER_R)
-            {
-                pad->triggerRight = 0;
-                pad->ftriggerRight = 0;
-                engine_pad->triggerRight = 0;
-                engine_pad->ftriggerRight = 0;
+        } else {
+            timer = 0;
+            update->advance = 0;
+        }
+
+        if (pad->held & decrement_btn)
+        {
+            timer_dec++;
+
+            int curr_frame = Record_GetCurrFrame();
+            if (rec_state->is_exist == 1 && (timer_dec == 1 || timer_dec > 30)) {
+                Record_Restart(rec_state, Savestate_Silent);
+                if (curr_frame > 0) {
+                    stc_recording_target_frame = curr_frame - 1;
+                    event_vars->flags |= EventVarsFlag_ForceGameLoop;
+                    return 1;
+                }
             }
         }
+        else {
+            timer_dec = 0;
+        }
     }
-
     else
     {
         update->advance = 0;
         timer = 0;
+        timer_dec = 0;
     }
 
     return isAdvance;
@@ -3794,6 +3816,12 @@ void Record_Think(GOBJ *rec_gobj)
         if (rec_data.restore_timer >= AUTORESTORE_DELAY)
             Record_LoadSavestate(rec_state);
     }
+
+    int curr_frame = Record_GetCurrFrame();
+    if (curr_frame >= stc_recording_target_frame) {
+        event_vars->flags &= ~EventVarsFlag_ForceGameLoop;
+        stc_recording_target_frame = -1;
+    }
 }
 
 int Record_RearrangeButtons(RecInputs *inputs) {
@@ -4124,6 +4152,8 @@ void Record_PruneState(GOBJ *menu_gobj)
 }
 void Record_DeleteState(GOBJ *menu_gobj)
 {
+    rec_state->is_exist = 0;
+
     stc_playback_cancelled_hmn = false;
     stc_playback_cancelled_cpu = false;
     for (u32 i = 0; i < countof(LabOptions_Record); i++)
@@ -4546,35 +4576,12 @@ void Record_MemcardLoad(int slot, int file_no)
     }
 }
 
-void Record_LoadSavestate(Savestate_v1 *savestate) {
-    int mirror = LabOptions_Record[OPTREC_MIRRORED_PLAYBACK].val;
-    if (mirror == OPTMIRROR_RANDOM)
-        mirror = HSD_Randi(2);
-
-    // if a non-major savestate is saved while mirrored, we need to unmirror again.
-    if (savestate != rec_state)
-        mirror = mirror != event_vars->savestate_saved_while_mirrored;
-    event_vars->loaded_mirrored = mirror;
-
+void Record_RerollSlotRNG(void) {
     if (Record_HMN_IsPlayback() && Record_HMN_IsRandomSlot())
         rec_data.hmn_rndm_slot = Record_GetRandomSlot(rec_data.hmn_inputs, LabOptions_SlotChancesHMN);
 
     if (Record_CPU_IsPlayback() && Record_CPU_IsRandomSlot())
         rec_data.cpu_rndm_slot = Record_GetRandomSlot(rec_data.cpu_inputs, LabOptions_SlotChancesCPU);
-    
-    event_vars->game_timer = rec_state->frame;
-    rec_data.restore_timer = 0;
-
-    action_log_cur = countof(action_log); // disable action log
-
-    CPUResetVars();
-
-    stc_playback_cancelled_hmn = false;
-    stc_playback_cancelled_cpu = false;
-    
-    int flags = 0;
-    if (mirror) flags |= Savestate_Mirror;
-    event_vars->Savestate_Load_v1(savestate, flags);
 
     int plys[2] = {0, 1};
     int chances[2] = {
@@ -4598,6 +4605,35 @@ void Record_LoadSavestate(Savestate_v1 *savestate) {
 
         Fighter_SetHUDDamage(ply, percent);
     }
+}
+
+void Record_Restart(Savestate_v1 *savestate, int flags) {
+    int mirror = LabOptions_Record[OPTREC_MIRRORED_PLAYBACK].val;
+    if (mirror == OPTMIRROR_RANDOM)
+        mirror = HSD_Randi(2);
+
+    // if a non-major savestate is saved while mirrored, we need to unmirror again.
+    if (savestate != rec_state)
+        mirror = mirror != event_vars->savestate_saved_while_mirrored;
+    event_vars->loaded_mirrored = mirror;
+
+    event_vars->game_timer = rec_state->frame;
+    rec_data.restore_timer = 0;
+
+    action_log_cur = countof(action_log); // disable action log
+
+    CPUResetVars();
+
+    stc_playback_cancelled_hmn = false;
+    stc_playback_cancelled_cpu = false;
+    
+    if (mirror) flags |= Savestate_Mirror;
+    event_vars->Savestate_Load_v1(savestate, flags);
+}
+
+void Record_LoadSavestate(Savestate_v1 *savestate) {
+    Record_Restart(savestate, 0);
+    Record_RerollSlotRNG();
 }
 
 void Snap_CObjThink(GOBJ *gobj)
@@ -5936,11 +5972,24 @@ void Event_Init(GOBJ *gobj)
     // saved options
     Memcard *memcard = stc_memcard;
 
-    // load input display option, resetting if invalid
-    if (memcard->TM_LabFrameAdvanceButton < LabOptions_General[OPTGEN_FRAMEBTN].value_num)
-        LabOptions_General[OPTGEN_FRAMEBTN].val = memcard->TM_LabFrameAdvanceButton;
-    else
-        memcard->TM_LabFrameAdvanceButton = LabOptions_General[OPTGEN_FRAMEBTN].val;
+    // load frame advance option, resetting if invalid
+    u8 advance_btn = memcard->TM_LabFrameAdvanceButton & 0xF;
+    u8 decrement_btn = memcard->TM_LabFrameAdvanceButton >> 4;
+    
+    if (advance_btn < LabOptions_General[OPTGEN_FRAMEBTN].value_num) {
+        LabOptions_General[OPTGEN_FRAMEBTN].val = advance_btn;
+    } else {
+        memcard->TM_LabFrameAdvanceButton &= 0xF0;
+        memcard->TM_LabFrameAdvanceButton |= LabOptions_General[OPTGEN_FRAMEBTN].val;
+    }
+
+    // load frame decrement option, resetting if invalid
+    if (decrement_btn < LabOptions_General[OPTGEN_FRAMEBTNREV].value_num) {
+        LabOptions_General[OPTGEN_FRAMEBTNREV].val = decrement_btn;
+    } else {
+        memcard->TM_LabFrameAdvanceButton &= 0x0F;
+        memcard->TM_LabFrameAdvanceButton |= LabOptions_General[OPTGEN_FRAMEBTNREV].val << 4;
+    }
 
     // load input display option, resetting if invalid
     if (memcard->TM_LabCPUInputDisplay < LabOptions_General[OPTGEN_INPUT].value_num)
@@ -6081,7 +6130,7 @@ void Event_Init(GOBJ *gobj)
 }
 
 // Update Function
-void Event_Update()
+void Event_Update(void)
 {
     if (Pause_CheckStatus(1) != 2) {
         float speed = LabOptions_GameSpeeds[LabOptions_General[OPTGEN_SPEED].val];
@@ -6252,6 +6301,8 @@ void Event_Think_LabState_Normal(GOBJ *event) {
             HSD_BUTTON_DPAD_UP | HSD_TRIGGER_L | HSD_TRIGGER_R | HSD_TRIGGER_Z);
     bool takeover_input = (buttons | triggers | sticks) != 0;
     
+    bool fastforwarding = stc_recording_target_frame >= 0;
+
     int takeover_target;
     if (hmn_mode == RECMODE_HMN_RERECORD)
         takeover_target = TAKEOVER_HMN;
@@ -6272,7 +6323,7 @@ void Event_Think_LabState_Normal(GOBJ *event) {
     }
     case (RECMODE_CPU_PLAYBACK):
     {
-        if (takeover_input && takeover_target == TAKEOVER_CPU)
+        if (takeover_input && !fastforwarding && takeover_target == TAKEOVER_CPU)
             stc_playback_cancelled_cpu = true;
         
         if (takeover_target != TAKEOVER_CPU && !stc_playback_cancelled_cpu) {
@@ -6312,7 +6363,7 @@ void Event_Think_LabState_Normal(GOBJ *event) {
                 break;
             }
         }
-
+        
         if (!stc_playback_cancelled_cpu) {
             Fighter_SetSlotType(cpu_data->ply, 0);
             cpu_data->pad_index = stc_cpu_controller;
@@ -6354,7 +6405,9 @@ void Event_Think_LabState_Normal(GOBJ *event) {
 
     if (!cpu_control) {
         if ((hmn_mode == RECMODE_HMN_PLAYBACK || hmn_mode == RECMODE_HMN_RERECORD)
-            && (Record_PastLastInput(0) || (takeover_input && takeover_target == TAKEOVER_HMN))) {
+            && (Record_PastLastInput(0) || (takeover_input && takeover_target == TAKEOVER_HMN))
+            && !fastforwarding
+        ) {
             stc_playback_cancelled_hmn = true;
         }
 
@@ -6742,7 +6795,7 @@ CounterInfo GetCounterInfo(void) {
     int hitidx = eventData->cpu_hitnum - 1;
     if (hitidx < 0) {
         hitidx = 0;
-        OSReport("cpu_hitnum not incremented!");
+        OSReport("cpu_hitnum not incremented!\n");
     }
     
     if (hitidx < ADV_COUNTER_COUNT) {

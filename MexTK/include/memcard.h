@@ -2041,7 +2041,7 @@ struct Memcard
     u8 TM_OSDPosition;     // 0x1F28
     u8 TM_EventPage;       // 0x1F29
     u8 TM_OSDRecommended;  // 0x1F2A
-    u8 TM_LabFrameAdvanceButton;    // 0x1F2B
+    u8 TM_LabFrameAdvanceButton;    // 0x1F2B - advance idx in low half, decrement idx in high half
     u8 TM_LabTauntEnabled;          // 0x1F2C
     u8 unused1F2D;         // 0x1F2D
     u8 unused1F2E;         // 0x1F2E

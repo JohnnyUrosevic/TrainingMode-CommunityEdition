@@ -699,6 +699,7 @@ EventVars stc_event_vars = {
     .menu_gobj = 0,
     .rng = &rng,
     .game_timer = 0,
+    .flags = 0,
     .Savestate_Save_v1 = Savestate_Save_v1,
     .Savestate_Load_v1 = Savestate_Load_v1,
     .Message_Display = Message_Display,

@@ -1027,6 +1027,7 @@ enum gen_option
 {
     OPTGEN_FRAME,
     OPTGEN_FRAMEBTN,
+    OPTGEN_FRAMEBTNREV,
     OPTGEN_HMNPCNT,
     OPTGEN_HMNPCNTLOCK,
     OPTGEN_MODEL,
@@ -1054,6 +1055,10 @@ enum gen_option
 static const char *LabOptions_CamMode[] = {"Normal", "Zoom", "Fixed", "Advanced", "Static"};
 static const char *LabOptions_ShowInputs[] = {"Off", "HMN", "CPU", "HMN and CPU"};
 static const char *LabOptions_FrameAdvButton[] = {"L", "Z", "X", "Y", "R"};
+static const char *LabOptions_FrameDecButton[] = {"None", "Z", "L", "R", "X", "Y"};
+
+static int LabValues_FrameAdvButtonMask[] = {HSD_TRIGGER_L, HSD_TRIGGER_Z, HSD_BUTTON_X, HSD_BUTTON_Y, HSD_TRIGGER_R};
+static int LabValues_FrameDecButtonMask[] = {0, HSD_TRIGGER_Z, HSD_TRIGGER_L, HSD_TRIGGER_R, HSD_BUTTON_X, HSD_BUTTON_Y};
 
 static const char *LabOptions_ModelDisplay[] = {"On", "Stage Only", "Characters Only"};
 static const bool LabValues_CharacterModelDisplay[] = {true, false, true};
@@ -1066,17 +1071,27 @@ static EventOption LabOptions_General[OPTGEN_COUNT] = {
     {
         .kind = OPTKIND_TOGGLE,
         .name = "Frame Advance",
-        .desc = {"Enable frame advance. Press to advance one",
-                 "frame. Hold to advance at normal speed."},
+        .desc = {"Enable frame advance."},
         .OnChange = Lab_ChangeFrameAdvance,
     },
     {
         .kind = OPTKIND_STRING,
         .value_num = sizeof(LabOptions_FrameAdvButton) / 4,
         .name = "Frame Advance Button",
-        .desc = {"Choose which button will advance the frame"},
+        .desc = {"The button to advance a frame.",
+                 "Hold to advance at normal speed."},
         .values = LabOptions_FrameAdvButton,
         .OnChange = Lab_ChangeFrameAdvanceButton,
+        .disable = 1,
+    },
+    {
+        .kind = OPTKIND_STRING,
+        .value_num = sizeof(LabOptions_FrameDecButton) / 4,
+        .name = "Frame Decrement Button",
+        .desc = {"The button to go back one frame.",
+                 "Only works during playback."},
+        .values = LabOptions_FrameDecButton,
+        .OnChange = Lab_ChangeFrameDecrementButton,
         .disable = 1,
     },
     {

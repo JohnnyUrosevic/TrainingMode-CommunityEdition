@@ -230,6 +230,8 @@ typedef struct HUDCamData {
     Text *text_cache[32];
 } HUDCamData;
 
+#define EventVarsFlag_ForceGameLoop (1u << 0) // forces the update loop to continuously run
+
 typedef struct EventVars
 {
     EventDesc *event_desc;                                                                   // event information
@@ -238,6 +240,7 @@ typedef struct EventVars
     GOBJ *menu_gobj;                                                                         // event menu gobj
     RNGControl *rng;                                                                         // rng struct pointer
     int game_timer;                                                                          // amount of game frames passed
+    u32 flags;                                                                               // misc flags
     int (*Savestate_Save_v1)(Savestate_v1 *savestate, int flags);                                  // function pointer to save state
     int (*Savestate_Load_v1)(Savestate_v1 *savestate, int flags);                                  // function pointer to load state
     GOBJ *(*Message_Display)(int msg_kind, int queue_num, int msg_color, char *format, ...); // function pointer to display message

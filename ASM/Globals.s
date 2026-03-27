@@ -925,7 +925,10 @@
     .set EventVars_Ptr, 0x803d7054
     .set EventVars_EventGobj, (2 * 4)
     .set EventVars_RNGControl, (4 * 4)
-    .set EventVars_MessageDisplay, (8 * 4)
+    .set EventVars_Flags, (6 * 4)
+    .set EventVars_MessageDisplay, (9 * 4)
+
+    .set EventVars_Flags_ForceGameLoop, 1
 
     # Message Display
     .macro Message_Display
