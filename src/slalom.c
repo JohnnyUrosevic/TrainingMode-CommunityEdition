@@ -1,12 +1,10 @@
 #include "../MexTK/mex.h"
 #include "events.h"
 
-#define Pole_MaxDistance 40.f
+#define Pole_MaxDistance 30.f
 #define Pole_MinDistance 10.f
 #define Pole_Scale (Vec3) {0.15f, 1.0f, 0.15f}
 #define Pole_ScaleQueued (Vec3) {0.1f, 0.2f, 0.1f}
-#define Pole_OffsetL 10.f
-#define Pole_OffsetR 10.f
 #define PoleJOBJ_Aura 3
 
 static Text *hud_score_text, *hud_best_text;
@@ -64,7 +62,7 @@ static EventOption Options_Main[OPT_COUNT] = {
     {
         .kind = OPTKIND_FUNC,
         .name = "Retry",
-        .desc = { "Retry this event. Pressing Z while paused also does this." },
+        .desc = { "Retry this event. Or, press Z while paused." },
         .OnSelect = Retry
     },
     {

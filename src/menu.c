@@ -136,7 +136,13 @@ void EventMenu_Update(GOBJ *gobj)
 
     bool pause_pressed = false;
     int pause_index = 0;
-    if (event_vars->game_timer > 3) {
+
+    // Aitch: unfortunate necessity.
+    // We don't want events that skip the sss to immediately pause on enter,
+    // but the savestate system resets the game timer so the techchase event,
+    // which loads a savestate to the start of the scene, cannot unpause.
+    // So we detect if we are in the menu and allow the unpause to prevent a softlock.
+    if (event_vars->game_timer > 3 || menu_data->mode == MenuMode_Paused) {
         for (int i = 0; i < 4; i++) {
             HSD_Pad *pad = PadGetMaster(i);
             if (pad->down & HSD_BUTTON_START) {
