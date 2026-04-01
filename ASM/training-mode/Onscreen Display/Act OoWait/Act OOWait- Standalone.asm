@@ -6,6 +6,7 @@
     .set player, 30
     .set FramesSince, 28
     .set ASBeforeWait, 27
+    .set OSDText, 26
 
     backupall
 
@@ -40,10 +41,20 @@ WaitSearchLoop:
     b WaitSearchLoop
     
 WaitSearchExit_Landing:
+    bl AutocancelTextEnd
+    .string "Act OoAutocancel\nFrame: %d"
+    .align 2
+AutocancelTextEnd:
+    mflr OSDText
     li FramesSince, -3
     b WaitSearchExit
     
 WaitSearchExit_Wait:
+    bl WaitTextEnd
+    .string "Act OoWait\nFrame: %d"
+    .align 2
+WaitTextEnd:
+    mflr OSDText
     li FramesSince, 1
 
 WaitSearchExit:
@@ -146,8 +157,7 @@ StoreTextColor:
     li r3, 5                                    # Message Kind
     lbz r4, 0xC(playerdata)                     # Message Queue
     li r5, MSGCOLOR_WHITE
-    bl TechText
-    mflr r6
+    mr r6, OSDText
     mr r7, FramesSince
     Message_Display
 
@@ -159,17 +169,6 @@ ChangeColor:
     branchl r12, Text_ChangeTextColor
 
     b Exit
-
-###################
-## TEXT CONTENTS ##
-###################
-
-TechText:
-    blrl
-    .string "Act OoWait\nFrame: %d"
-    .align 2
-
-##############################
 
 Exit:
     restoreall
