@@ -1673,7 +1673,6 @@ static u8 LabOSD_ID[] = {
     OSD_LockoutTimers,
     OSD_RollAirdodgeInterrupt,
     OSD_BoostGrab,
-    OSD_Miscellaneous,
     OSD_ActOoWait,
     OSD_ActOoAirborne,
     OSD_ActOoJumpSquat,
