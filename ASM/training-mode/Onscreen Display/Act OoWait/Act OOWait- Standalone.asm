@@ -128,13 +128,45 @@ NotTeching:
     b ComingFromWhitelist
 NotWavedash:
 
+    # Laser
+    cmpwi ASBeforeWait, 341
+    blt NotLaser
+    cmpwi ASBeforeWait, 346
+    bgt NotLaser
+    lwz r3, 0x4(playerdata)  # fighter id
+    cmpwi r3, Fox.Int
+    beq ComingFromWhitelist
+    cmpwi r3, Falco.Int
+    beq ComingFromWhitelist
+NotLaser:
+
+    # Needles
+    cmpwi ASBeforeWait, 341
+    blt NotNeedles
+    cmpwi ASBeforeWait, 348
+    bgt NotNeedles
+    lwz r3, 0x4(playerdata)  # fighter id
+    cmpwi r3, Sheik.Int
+    beq ComingFromWhitelist
+NotNeedles:
+
+    # FC Aerials
+    cmpwi ASBeforeWait, 344
+    blt NotFCAerial
+    cmpwi ASBeforeWait, 348
+    bgt NotFCAerial
+    lwz r3, 0x4(playerdata)  # fighter id
+    cmpwi r3, Peach.Int
+    beq ComingFromWhitelist
+NotFCAerial:
+
     cmpwi ASBeforeWait, ASID_AttackAirN
     blt NotAerial
     cmpwi ASBeforeWait, ASID_AttackAirLw
     bgt NotAerial
     b ComingFromWhitelist
-    
 NotAerial:
+
     b Exit
 
 ComingFromWhitelist:
