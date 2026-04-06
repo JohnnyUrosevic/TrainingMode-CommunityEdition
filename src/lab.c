@@ -1871,7 +1871,7 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
     // if first throw frame, advance hitnum
     int is_thrown = IsThrown(cpu);
     if (is_thrown == 1 && eventData->cpu_isthrown == 0)
-        eventData->cpu_hitnum++;
+        CPUOnHit();
     eventData->cpu_isthrown = is_thrown;
 
     // ALWAYS CHECK FOR X AND OVERRIDE STATE
