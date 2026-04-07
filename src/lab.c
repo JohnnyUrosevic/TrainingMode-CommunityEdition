@@ -25,6 +25,8 @@ static u8 stc_hmn_controller;             // making this static so importing rec
 static u8 stc_cpu_controller;             // making this static so importing recording doesnt overwrite
 static u8 stc_null_controller;            // making this static so importing recording doesnt overwrite
 
+static int stc_overlays_running[4] = { -1, -1, -1, -1 };
+
 // Aitch: not really a better way to do this that I can think of.
 // Feel free to change if you find a way to implement playback takeover without a global.
 static int stc_playback_cancelled_hmn = false;
@@ -5809,8 +5811,7 @@ int Export_Compress(u8 *dest, u8 *source, u32 size)
 static void UpdateOverlays(GOBJ *character, EventOption *overlays) {
     FighterData *data = character->userdata;
 
-    static int overlays_running[4] = { -1, -1, -1, -1 };
-    int *overlay_running = &overlays_running[data->ply];
+    int *overlay_running = &stc_overlays_running[data->ply];
 
     for (OverlayGroup i = 0; i < OVERLAY_COUNT; i++)
     {
@@ -6726,12 +6727,22 @@ void HitboxTrails_Think(void) {
         for (u32 hit_i = 0; hit_i < countof(ft_data->hitbox); ++hit_i) {
             ftHit *hit = &ft_data->hitbox[hit_i];
             if (!hit->active) continue;
+            
+            GXColor color = HitboxTrails_Color(hit->dmg);
+
+            int overlay_idx = stc_overlays_running[ply];
+            if (overlay_idx >= 0) {
+                if (ply == 0)
+                    color = LabValues_OverlayColours[LabOptions_OverlaysHMN[overlay_idx].val].color;
+                else if (ply == 1)
+                    color = LabValues_OverlayColours[LabOptions_OverlaysCPU[overlay_idx].val].color;
+            }
 
             *HitboxTrails_Add() = (HitboxTrail) {
                 .a = hit->pos_prev,
                 .b = hit->pos,
                 .size = hit->size,
-                .color = HitboxTrails_Color(hit->dmg),
+                .color = color,
                 .frame_created = event_vars->game_timer,
             };
         }

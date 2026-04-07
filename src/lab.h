@@ -1922,17 +1922,13 @@ enum hitbox_trails_option
 {
     OPTHITBOXTRAILS_ENABLED,
     OPTHITBOXTRAILS_DECAY,
-    // OPTHITBOXTRAILS_TINT,
 
     OPTHITBOXTRAILS_COUNT
 };
 
-const u8 LabValues_HitboxTrailDecayConst[] = { 15, 30, 0 };
-const u8 LabValues_HitboxTrailDecayFactor[] = { 4, 2, 0 };
-const char *LabOptions_HitboxTrailDecay[] = { "Quick", "Slow", "Off" };
-const char *LabOptions_HitboxTrailTint[] = { "Damage", "ID", "Off" };
-
-// const char *LabOptions_HitboxTrailTint[] = { "Time", "" };
+const u8 LabValues_HitboxTrailDecayConst[] = { 15, 10, 30, 0 };
+const u8 LabValues_HitboxTrailDecayFactor[] = { 4, 8, 2, 0 };
+const char *LabOptions_HitboxTrailDecay[] = { "Normal", "Fast", "Slow", "Off" };
 
 static EventOption LabOptions_HitboxTrails[OPTHITBOXTRAILS_COUNT] = {
     {
@@ -1944,16 +1940,9 @@ static EventOption LabOptions_HitboxTrails[OPTHITBOXTRAILS_COUNT] = {
         .kind = OPTKIND_STRING,
         .value_num = countof(LabOptions_HitboxTrailDecay),
         .name = "Decay",
-        .desc = {"Choose which button will advance the frame"},
+        .desc = {"How quickly the hitbox will fade away."},
         .values = LabOptions_HitboxTrailDecay,
     },
-    // {
-    //     .kind = OPTKIND_STRING,
-    //     .value_num = countof(LabOptions_HitboxTrailTint),
-    //     .name = "Tint",
-    //     .desc = {"IDK"},
-    //     .values = LabOptions_HitboxTrailTint,
-    // },
 };
 
 static EventMenu LabMenu_HitboxTrails = {
