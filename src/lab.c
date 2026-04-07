@@ -1565,7 +1565,6 @@ void CPUOnHit(void) {
     eventData->cpu_isactionable = 0;
     eventData->cpu_countertimer = 0;
     eventData->cpu_hitnum++;
-    eventData->cpu_lasthit = cpu_data->dmg.atk_instance_hurtby;
     
     // if set during TDI calc, SDI and ASDI will override and follow suit
     CustomTDI *custom_di = NULL;
@@ -1870,7 +1869,7 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
         goto CPULOGIC_COUNTER;
     }
 
-    // if first throw frame, advance hitnum
+    // if first throw frame, run hit logic
     int is_thrown = IsThrown(cpu);
     if (is_thrown == 1 && eventData->cpu_isthrown == 0)
         CPUOnHit();
@@ -2059,8 +2058,12 @@ void CPUThink(GOBJ *event, GOBJ *hmn, GOBJ *cpu)
     CPULOGIC_SDI:
     {
         // update move instance
-        if (eventData->cpu_lasthit != cpu_data->dmg.atk_instance_hurtby)
-            CPUOnHit();
+        if (eventData->cpu_lasthit != cpu_data->dmg.atk_instance_hurtby) {
+            eventData->cpu_lasthit = cpu_data->dmg.atk_instance_hurtby;
+
+            if (cpu_data->flags.hitlag)
+                CPUOnHit();
+        }
 
         // if no more hitlag, enter tech state
         if (cpu_data->flags.hitlag == 0)
