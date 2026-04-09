@@ -1695,7 +1695,7 @@ void CPUOnHit(void) {
                 custom_di = &stc_tdi_vals[hit_idx];
                 int dir_factor = CustomTDI_DirectionFactor(cpu, hmn, custom_di);
                 eventData->cpu_tdi_lstick_x = (int)(custom_di->lstickX * 127.f) * dir_factor;
-                eventData->cpu_tdi_lstick_y = (int)(custom_di->lstickY * 127.f) * dir_factor;
+                eventData->cpu_tdi_lstick_y = (int)(custom_di->lstickY * 127.f);
                 break;
             } else {
                 goto TDI_RANDOM;
@@ -1706,7 +1706,7 @@ void CPUOnHit(void) {
             custom_di = &stc_tdi_vals[HSD_Randi(stc_tdi_val_num)];
             int dir_factor = CustomTDI_DirectionFactor(cpu, hmn, custom_di);
             eventData->cpu_tdi_lstick_x = (int)(custom_di->lstickX * 127.f) * dir_factor;
-            eventData->cpu_tdi_lstick_y = (int)(custom_di->lstickY * 127.f) * dir_factor;
+            eventData->cpu_tdi_lstick_y = (int)(custom_di->lstickY * 127.f);
             break;
         }
         case (CPUTDI_NONE):
@@ -1778,7 +1778,7 @@ void CPUOnHit(void) {
         custom_di = &stc_tdi_vals[HSD_Randi(stc_tdi_val_num)];
         int dir_factor = CustomTDI_DirectionFactor(cpu, hmn, custom_di);
         eventData->cpu_tdi_lstick_x = (int)(custom_di->lstickX * 127.f) * dir_factor;
-        eventData->cpu_tdi_lstick_y = (int)(custom_di->lstickY * 127.f) * dir_factor;
+        eventData->cpu_tdi_lstick_y = (int)(custom_di->lstickY * 127.f);
     } else {
         int sdi_kind = LabOptions_CPU[OPTCPU_SDIDIR].val;
         switch (sdi_kind) {
